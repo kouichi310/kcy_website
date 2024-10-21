@@ -1,0 +1,19 @@
+services:
+  frontend:
+    build: frontend
+    tty: true
+    volumes:
+      - ./frontend/app/:/app
+    ports:
+      - "80:5173"
+    command: >
+      sh -c "yarn install && yarn dev --host"
+
+  backend:
+    build: mock-api
+    tty: true
+    volumes: 
+      - ./mock-api/db.json:/data/db.json
+    ports:
+      - "3000:3000"
+    command: json-server --watch db.json --host 0.0.0.0
