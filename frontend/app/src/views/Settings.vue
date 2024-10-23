@@ -22,26 +22,33 @@
 
     <!-- パスワードフィールド -->
     <v-row>
-      <v-col>
+    <!-- 現在のパスワードフィールド -->
+      <v-col cols="9">
       <v>現在のパスワード</v>
-        <v-text-field
-          :append-inner-icon="visible ? 'mdi-eye-off' : 'mdi-eye'"
-          :type="visible ? 'text' : 'password'"
-          variant="outlined"
-          @click:append-inner="visible = !visible"
-        ></v-text-field>
+      <v-text-field
+        :append-inner-icon="visible_now ? 'mdi-eye-off' : 'mdi-eye'"
+        :type="visible_now ? 'text' : 'password'"
+        variant="outlined"
+        @click:append-inner="visible_now = !visible_now"
+      ></v-text-field>
       </v-col>
-    </v-row>
+    </v-row>    
 
     <v-row>
-      <v-col>
+    <!-- 新しいパスワードフィールド -->
+      <v-col cols="9">
       <v>新しいパスワード</v>
-        <v-text-field
-          :append-inner-icon="visible ? 'mdi-eye-off' : 'mdi-eye'"
-          :type="visible ? 'text' : 'password'"
-          variant="outlined"
-          @click:append-inner="visible = !visible"
-        ></v-text-field>
+      <v-text-field
+        :append-inner-icon="visible_new ? 'mdi-eye-off' : 'mdi-eye'"
+        :type="visible_new ? 'text' : 'password'"
+        variant="outlined"
+        @click:append-inner="visible_new = !visible_new"
+      ></v-text-field>
+    </v-col>
+      <!-- 更新ボタン -->
+      <v-col cols="3" class="d-flex align-center">
+        <v-btn color="green" @click="updatePassword">更新</v-btn>
+        <span v-if="pwupdateMes" class="ml-2">更新されました</span>
       </v-col>
     </v-row>
 
@@ -67,13 +74,15 @@ export default {
     return {
       selectedYear: 5,
       selectedDept: 'J',
-      currentPassword: '',
-      newPassword: '',
+      currentPassword: 'ww',
+      newPassword: 'eee',
       showPassword: false, // 今のパスワード表示/非表示
       showNewPassword: false, // 新しいパスワード表示/非表示
       years: [1, 2, 3, 4, 5],
       departments: ['M', 'E', 'D', 'J', 'C'],
-      visible: false,
+      visible_now: false,
+      visible_new: false,
+      pwupdateMes: false,
     };
   },
   methods: {
@@ -83,11 +92,22 @@ export default {
     toggleNewPasswordVisibility() {
       this.showNewPassword = !this.showNewPassword;
     },
+    updatePassword() {
+      // パスワード更新処理
+    },
     logout() {
-      // ログアウト処理
+      this.$router.push('/Login');// ログアウト処理
     },
     deleteAccount() {
-      // アカウント削除処理
+      this.$router.push('/Login');// アカウント削除処理
+    },
+    updatePassword() {// パスワード更新処理
+      this.currentPassword = '';
+      this.newPassword = '';
+      this.pwupdateMes = true;
+      setTimeout(() => {
+        this.pwupdateMes = false;
+      }, 1500);
     },
   },
   components: {
