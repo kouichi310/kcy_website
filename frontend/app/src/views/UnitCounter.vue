@@ -1,10 +1,12 @@
 <template>
   <v-container>
-    <!-- 学科の選択 -->
+    <!-- 学科の選択 (画像のようにボタンで表示) -->
     <v-row>
       <v-col>
         <v-btn-toggle v-model="selectedDept" mandatory>
-          <v-btn v-for="dept in departments" :key="dept" :value="dept">{{ dept }}</v-btn>
+          <v-btn v-for="dept in departments" :key="dept" :value="dept" @click="filterByDept(dept)">
+            {{ dept }}
+          </v-btn>
         </v-btn-toggle>
       </v-col>
     </v-row>
@@ -36,18 +38,48 @@
     <!-- チェック操作 -->
     <v-row>
       <v-col>
-        <v-checkbox label="必修科目のチェック" v-model="requiredChecked"></v-checkbox>
-        <v-checkbox label="選択科目のチェック" v-model="electiveChecked"></v-checkbox>
-        <v-checkbox label="全ての授業のチェック" v-model="allChecked"></v-checkbox>
+        <v-checkbox label="必修科目のチェック" v-model="requiredChecked" @change="filterCourses"></v-checkbox>
+        <v-checkbox label="選択科目のチェック" v-model="electiveChecked" @change="filterCourses"></v-checkbox>
+      </v-col>
+    </v-row>
+
+    <!-- 学年フィルタリング -->
+    <v-row>
+      <v-col>
+        <v-select
+          v-model="selectedYear"
+          :items="years"
+          label="学年でフィルタリング"
+          @change="filterCourses"
+          :items="[null, 1, 2, 3, 4, 5]" <!-- 初期設定として「選択しない」を追加 -->
+        >
+          <template v-slot:selection="{ item }">
+            <span>{{ item === null ? '選択しない' : item }}</span> <!-- 表示名を変更 -->
+          </template>
+        </v-select>
+      </v-col>
+    </v-row>
+
+    <!-- 教科名の検索フィールド -->
+    <v-row>
+      <v-col>
+        <v-text-field v-model="searchQuery" label="教科名を検索" @input="filterCourses"></v-text-field>
       </v-col>
     </v-row>
 
     <!-- 単位詳細テーブル -->
     <v-row>
       <v-col>
-        <v-data-table :headers="headers" :items="courses" item-value="credits" class="elevation-1">
+        <v-data-table
+          :headers="headers"
+          :items="filteredCourses"
+          item-value="credits"
+          class="elevation-1"
+        >
           <template v-slot:item.action="{ item }">
-            <v-checkbox v-model="item.checked"></v-checkbox>
+            <v-btn :color="item.checked ? 'primary' : 'default'" @click="toggleCourse(item)">
+              {{ item.checked ? '選択中' : '選択' }}
+            </v-btn>
           </template>
         </v-data-table>
       </v-col>
@@ -60,25 +92,13 @@
 import Footer from '../components/Footer.vue';
 
 export default {
-  name: 'App', 
+  name: 'App',
 
   components: {
     Footer,
   },
   data() {
     return {
-      totalCredits: 0,
-      courses: [
-        { name: '教科名', year: '学年', dept: '科目', category: '区分', credits: '単位数', checked: '選択' },
-        { name: '国語IA', year: 1, dept: '一般', category: '必修', credits: 2, checked: false },
-        { name: '国語IB', year: 1, dept: '一般', category: '必修', credits: 2, checked: false },
-        { name: '地理A', year: 1, dept: '一般', category: '必修', credits: 1, checked: false },
-        { name: '地理B', year: 1, dept: '一般', category: '必修', credits: 2, checked: false },
-        { name: '美術', year: 1, dept: '一般', category: '必修', credits: 1, checked: false },
-        { name: '英語IA', year: 1, dept: '一般', category: '必修', credits: 2, checked: false },
-        { name: '英語IB', year: 1, dept: '一般', category: '必修', credits: 2, checked: false },
-        // その他のコース情報を追加
-      ],
       headers: [
         { text: '教科名', value: 'name' },
         { text: '学年', value: 'year' },
@@ -86,18 +106,71 @@ export default {
         { text: '区分', value: 'category' },
         { text: '単位数', value: 'credits' },
         { text: '選択', value: 'action' }
-      ]
+      ],
+      totalCredits: 0,
+      courses: [
+        { name: '国語IA', year: 1, dept: 'M', category: '必修', credits: 2, checked: false },
+        { name: '国語IB', year: 1, dept: 'E', category: '必修', credits: 2, checked: false },
+        { name: '地理A', year: 1, dept: 'D', category: '必修', credits: 1, checked: false },
+        { name: '地理B', year: 1, dept: 'J', category: '必修', credits: 2, checked: false },
+        { name: '美術', year: 1, dept: 'C', category: '必修', credits: 1, checked: false },
+        { name: '英語IA', year: 1, dept: 'M', category: '必修', credits: 2, checked: false },
+        { name: '英語IB', year: 1, dept: 'E', category: '必修', credits: 2, checked: false },
+        // その他のコース情報を追加
+      ],
+      departments: ['M', 'E', 'D', 'J', 'C'], // 学科
+      years: [1, 2, 3, 4, 5], // 学年
+      selectedDept: null,
+      selectedYear: null, // 初期設定はnull
+      requiredChecked: false,
+      electiveChecked: false,
+      searchQuery: '',
+      filteredCourses: [], // フィルタリングされたコース
     };
   },
   methods: {
     calculateCredits() {
-      // 選択されたコースの単位を合計する
       this.totalCredits = this.courses
         .filter(course => course.checked)
         .reduce((sum, course) => sum + course.credits, 0);
+    },
+    filterCourses() {
+      // 初期状態で全コースを取得
+      let filtered = this.courses;
+
+      // 教科名でフィルタリング
+      if (this.searchQuery) {
+        filtered = filtered.filter(course => course.name.includes(this.searchQuery));
+      }
+
+      // 必修または選択科目でフィルタリング
+      if (this.requiredChecked && this.electiveChecked) {
+        // 両方選択
+        // 何も変更しない
+      } else if (this.requiredChecked) {
+        filtered = filtered.filter(course => course.category === '必修');
+      } else if (this.electiveChecked) {
+        filtered = filtered.filter(course => course.category === '選択');
+      }
+
+      // 学年でフィルタリング
+      if (this.selectedYear) {
+        filtered = filtered.filter(course => course.year === this.selectedYear);
+      }
+
+      this.filteredCourses = filtered; // フィルタリング結果を更新
+    },
+    toggleCourse(course) {
+      course.checked = !course.checked;
+    },
+    filterByDept(dept) {
+      this.selectedDept = dept;
+      this.filterCourses();
     }
-  }
-  ,
+  },
+  mounted() {
+    this.filteredCourses = this.courses; // 初期状態で全てのコースを表示
+  },
 };
 </script>
 

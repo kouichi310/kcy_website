@@ -15,9 +15,14 @@
         <v-card class="weekday-card">{{ day }}</v-card>
       </v-col>
     </v-row>
-
     <!-- Schedule Table -->
     <v-row justify="center">
+      <v-col cols="2" md="2" class="pa-0"> 
+        <v-card v-for="(time,timeIndex) in timePeriods" :key="timeIndex" class="timetable-card"> 
+          {{ time }} 
+        </v-card> 
+      </v-col> 
+
       <v-col
         v-for="(column, colIndex) in timetableColumns"
         :key="colIndex"
@@ -77,7 +82,8 @@ export default {
       selectedClass: 'J',  // 初期選択
       grades: ['1', '2', '3', '4', '5'],  // 学年
       classes: ['M', 'E', 'D', 'J', 'C'],  // 学科
-      weekdays:['月', '火', '水', '木', '金'], // 曜日
+      weekdays:[' ', '月', '火', '水', '木', '金'], // 曜日
+      timePeriods: ['1,2限', '3,4限', '5,6限', '7,8限'], // 時限
       timetableRows: Array.from({ length: 4 }), // 縦列(時限)
       timetableColumns: Array.from({ length: 5 }), //　横列(曜日) 
       // 5学年 × 5学科 × 5曜日 × 4限のデータ
@@ -105,11 +111,35 @@ export default {
 
     // サンプルデータを設定する関数(4次元配列 this.scheduleData['[学年]']['[学科]'][[曜日(0~4)]][時限(0~3)])
     setSampleSchedule() {
-      //1年J科
+    //1年M科
+      this.scheduleData['1']['M'][0][0] = { content: '英語(G)B\n岩崎'};
+      this.scheduleData['1']['M'][0][1] = { content: '工学実験IB\n[実]\n石出\n歸山'}
+      this.scheduleData['1']['M'][0][2] = { content: '基礎数学II\n山下'}
+      this.scheduleData['1']['M'][0][3] = { content: '図学製図II\n松井'}
+
+      this.scheduleData['1']['M'][1][0] = { content: '基礎数学III\n平井'};
+      this.scheduleData['1']['M'][1][1] = { content: '物理学I\n高谷'}
+      this.scheduleData['1']['M'][1][2] = { content: '技術者入門II\n[講6]\n歸山\n板垣\n小田\n青葉\n松井'}
+
+      this.scheduleData['1']['M'][2][0] = { content: '保健体育IB\n坂田'};
+      this.scheduleData['1']['M'][2][1] = { content: '芸術\n[講6]\n(馬場)'}
+      this.scheduleData['1']['M'][2][2] = { content: '国語IB\n加田'}
+      this.scheduleData['1']['M'][2][3] = { content: '課題学習時間'}
+
+      this.scheduleData['1']['M'][3][0] = { content: '地理B\n(川元)'};
+      this.scheduleData['1']['M'][3][1] = { content: '基礎数学II\n山下'}
+      this.scheduleData['1']['M'][3][2] = { content: '情報処理II\n[ネ]\n伊藤\n青葉'}
+      this.scheduleData['1']['M'][3][3] = { content: 'HR\n山下'}
+
+      this.scheduleData['1']['M'][4][0] = { content: '英語(LS)IB\n[特]\n瀬川'};
+      this.scheduleData['1']['M'][4][1] = { content: '基礎化学IB\n柳下'}
+      this.scheduleData['1']['M'][4][2] = { content: '英語(RW)IB\n小川'}
+      this.scheduleData['1']['M'][4][3] = { content: '課題学習時間'}
+    //1年J科
       this.scheduleData['1']['J'][0][0] = { content: '国語IB\n加田'};
       this.scheduleData['1']['J'][0][1] = { content: '基礎数学II\nN鈴木'}
       this.scheduleData['1']['J'][0][2] = { content: 'コンピュータ入門\n[講2]\n吉澤\n安井'}
-      this.scheduleData['1']['J'][0][3] = { content: '基礎数学III\n\n平井'}
+      this.scheduleData['1']['J'][0][3] = { content: '基礎数学III\n平井'}
 
       this.scheduleData['1']['J'][1][0] = { content: '英語G(B)\n小澤'};
       this.scheduleData['1']['J'][1][1] = { content: 'コンピュータ演習II\n[講2]\n米村\n和田'}
@@ -129,7 +159,7 @@ export default {
       this.scheduleData['1']['J'][4][1] = { content: '地理B\n(川元)'}
       this.scheduleData['1']['J'][4][2] = { content: '基礎数学II\n鈴木'}
       this.scheduleData['1']['J'][4][3] = { content: '課題学習時間'}
-      //2年J科
+    //2年J科
       this.scheduleData['2']['J'][0][0] = { content: '微分積分IB\n佐野'}
       this.scheduleData['2']['J'][0][1] = { content: '英語IVB\n[特]\n岩崎'}
       this.scheduleData['2']['J'][0][2] = { content: '電気回路II\n和崎'}
@@ -150,11 +180,56 @@ export default {
       this.scheduleData['2']['J'][3][2] = { content: '線形代数IB\n(川崎)'}
       this.scheduleData['2']['J'][3][3] = { content: 'HR\n福士'}
 
-      this.scheduleData['2']['J'][4][0] = { content: '微分積分IB\n佐野'}
       this.scheduleData['2']['J'][4][1] = { content: '保健体育IIB\n清野'}
       this.scheduleData['2']['J'][4][2] = { content: 'プログラミング演習IB\n[図マ]\n大枝'}
       this.scheduleData['2']['J'][4][3] = { content: '課題学習時間'}
-      //5年J科
+    //3年J科
+      this.scheduleData['3']['J'][0][1] = { content: '物理学IV\n(藤本)'}
+      this.scheduleData['3']['J'][0][2] = { content: '線形代数II\nN関口'}
+      this.scheduleData['3']['J'][0][3] = { content: '課題学習時間'}
+
+      this.scheduleData['3']['J'][1][0] = { content: '実験・実習IIIB\n和崎\n丸山'}
+      this.scheduleData['3']['J'][1][1] = { content: '微分積分III\n阿部'}
+      this.scheduleData['3']['J'][1][2] = { content: '一般特別セミナー\nプロジェクト実習'}
+
+      this.scheduleData['3']['J'][2][0] = { content: '体育IB\n田川\n(篠村)'}
+      this.scheduleData['3']['J'][2][1] = { content: 'ドイツ語IB\n柴田'}
+      this.scheduleData['3']['J'][2][2] = { content: 'データ構造とアルゴリズムII\n[図マ]\nサプコタ'}
+      this.scheduleData['3']['J'][2][3] = { content: '課題学習時間'}
+
+      this.scheduleData['3']['J'][3][0] = { content: 'プログラミング演習IIB\n[図マ]\nサプコタ'}
+      this.scheduleData['3']['J'][3][1] = { content: 'コンピュータアーキテクチャII\n[講2]\n能城'}
+      this.scheduleData['3']['J'][3][2] = { content: '英語VB\n福士'}
+      this.scheduleData['3']['J'][3][3] = { content: 'HR\n安井'}
+
+      this.scheduleData['3']['J'][4][0] = { content: '化学II\n[階]\n柳下\nN佐久間'}
+      this.scheduleData['3']['J'][4][1] = { content: '情報数学II\n和田'}
+      this.scheduleData['3']['J'][4][2] = { content: '現代社会B\n小谷'}
+      this.scheduleData['3']['J'][4][3] = { content: 'ネットワーク入門II\n[図マ]\n斎藤'}
+    //4年J科
+      this.scheduleData['4']['J'][0][0] = { content: '計算機インタフェースII\n[講2]\n(J栗本)'}
+      this.scheduleData['4']['J'][0][1] = { content: '中国語IB[講1]\n(田)\n中国語IB[階]\n(安)\n中国語IB[ワB]\n(儲)\nドイツ語IIB[講5]\n柴田'}
+      this.scheduleData['4']['J'][0][2] = { content: 'プログラミング演習IIIB\n[図マ]\n丸山'}
+      this.scheduleData['4']['J'][0][3] = { content: '課題学習時間'}
+
+      this.scheduleData['4']['J'][1][0] = { content: '課題研究\nJ科全教員'}
+      this.scheduleData['4']['J'][1][1] = { content: 'プレゼンテーション技法\n[図マ]\n吉澤\nサプコタ'}
+      this.scheduleData['4']['J'][1][2] = { content: '課題学習時間'}
+      
+      this.scheduleData['4']['J'][2][0] = { content: '英語演習IB[講1]\n小澤\n英語演習IB[階]\n岩崎\n英会話IB[ワA]\n(グラント)\n英会話IB[ワB]\n(ヘイゲン)'}
+      this.scheduleData['4']['J'][2][1] = { content: '応用数学B\n[講1]\n山下'}
+      this.scheduleData['4']['J'][2][2] = { content: '課題学習時間'}
+      this.scheduleData['4']['J'][2][3] = { content: '課題研究\nJ科全教員'}
+
+      this.scheduleData['4']['J'][3][0] = { content: 'オペレーティングシステムII\n和崎'}
+      this.scheduleData['4']['J'][3][1] = { content: '哲学B[階]\n小谷\n経済学B[講1]\n武長\n社会学[講3]\n(杉谷)'}
+      this.scheduleData['4']['J'][3][2] = { content: '言語処理系\n[講2]\n丸山'}
+
+      this.scheduleData['4']['J'][4][0] = { content: 'プログラミング言語II\n[図マ]\n大枝'}
+      this.scheduleData['4']['J'][4][1] = { content: '国語表現\n田嶋'}
+      this.scheduleData['4']['J'][4][2] = { content: '工業英語\n[講2]\nサプコタ'}
+      this.scheduleData['4']['J'][4][3] = { content: '情報セキュリティII\n[講2]\n米村'}
+    //5年J科
       this.scheduleData['5']['J'][0][0] = { content: 'ネットワークシステムI\n[計]\n下馬場'};
       this.scheduleData['5']['J'][0][1] = { content: '画像情報システム\n[計]\n和崎'};
       this.scheduleData['5']['J'][0][2] = { content: '中国語IIA\n[階]\n(田)\n中国語IIA\n[講2]\n(安)\nドイツ語IIIA\n[講5]\n柴田'};
@@ -163,6 +238,20 @@ export default {
       this.scheduleData['5']['J'][1][0] = { content: 'バイオインフォマティクス\n[図マ]\nサプコタ'};
       this.scheduleData['5']['J'][1][1] = { content: '体育III\nH大野'};
       this.scheduleData['5']['J'][1][2] = { content: 'データマイニング\n[図マ]\n大枝'};
+
+      this.scheduleData['5']['J'][2][0] = { content: '卒業研究\nJ科全教員'};
+      this.scheduleData['5']['J'][2][1] = { content: '分散情報システム\n[図マ]\n丸山'};
+      this.scheduleData['5']['J'][2][2] = { content: '情報理論II\n[講5]\n和田'};
+      this.scheduleData['5']['J'][2][3] = { content: '課題学習時間'};
+
+      this.scheduleData['5']['J'][3][0] = { content: '卒業研究\nJ科全教員'};
+      this.scheduleData['5']['J'][3][1] = { content: 'メディアデザイン\n[図マ]\n吉澤'};
+      this.scheduleData['5']['J'][3][2] = { content: '卒業研究\nJ科全教員'};
+
+      this.scheduleData['5']['J'][4][0] = { content: '卒業研究\nJ科全教員'};
+      this.scheduleData['5']['J'][4][1] = { content: '計測システム\n[講2]\nサプコタ'};
+      this.scheduleData['5']['J'][4][2] = { content: '課題学習時間'};
+      this.scheduleData['5']['J'][4][3] = { content: '課題学習時間'};
     }
   },
 
