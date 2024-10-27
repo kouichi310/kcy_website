@@ -35,30 +35,26 @@
       </v-col>
     </v-row>
 
-    <!-- チェック操作 -->
+    <!-- チェック操作と学年フィルタリング用ボタン -->
     <v-row>
       <v-col>
-        <v-checkbox label="必修科目のチェック" v-model="requiredChecked" @change="filterCourses"></v-checkbox>
-        <v-checkbox label="選択科目のチェック" v-model="electiveChecked" @change="filterCourses"></v-checkbox>
+        <v-checkbox label="必修科目" v-model="requiredChecked" @change="filterCourses"></v-checkbox>
+        <v-checkbox label="選択科目" v-model="electiveChecked" @change="filterCourses"></v-checkbox>
+      </v-col>
+      <v-col>
+        <v-btn-toggle v-model="selectedYears" multiple>
+          <v-btn
+            v-for="year in years"
+            :key="year"
+            :value="year"
+            @click="toggleYear(year)"
+          >
+            {{ year }}年
+          </v-btn>
+        </v-btn-toggle>
       </v-col>
     </v-row>
 
-    <!-- 学年フィルタリング -->
-    <v-row>
-      <v-col>
-        <v-select
-          v-model="selectedYear"
-          :items="years"
-          label="学年でフィルタリング"
-          @change="filterCourses"
-          :items="[null, 1, 2, 3, 4, 5]" <!-- 初期設定として「選択しない」を追加 -->
-        >
-          <template v-slot:selection="{ item }">
-            <span>{{ item === null ? '選択しない' : item }}</span> <!-- 表示名を変更 -->
-          </template>
-        </v-select>
-      </v-col>
-    </v-row>
 
     <!-- 教科名の検索フィールド -->
     <v-row>
@@ -68,7 +64,7 @@
     </v-row>
 
     <!-- 単位詳細テーブル -->
-    <v-row>
+    <v-row v-if="requiredChecked || electiveChecked || selectedYears.length > 0">
       <v-col>
         <v-data-table
           :headers="headers"
@@ -107,6 +103,7 @@ export default {
         { text: '単位数', value: 'credits' },
         { text: '選択', value: 'action' }
       ],
+      selectedYears: [], // Array to store selected years
       totalCredits: 0,
       courses: [
         { name: '国語IA', year: 1, dept: 'M', category: '必修', credits: 2, checked: false },
@@ -114,14 +111,51 @@ export default {
         { name: '地理A', year: 1, dept: 'D', category: '必修', credits: 1, checked: false },
         { name: '地理B', year: 1, dept: 'J', category: '必修', credits: 2, checked: false },
         { name: '美術', year: 1, dept: 'C', category: '必修', credits: 1, checked: false },
-        { name: '英語IA', year: 1, dept: 'M', category: '必修', credits: 2, checked: false },
-        { name: '英語IB', year: 1, dept: 'E', category: '必修', credits: 2, checked: false },
-        // その他のコース情報を追加
+        { name: '英語IA', year: 1, dept: 'M', category: '選択', credits: 2, checked: false },
+        { name: '英語IB', year: 1, dept: 'E', category: '選択', credits: 2, checked: false },
+        { name: '社会IA', year: 1, dept: 'D', category: '選択', credits: 1, checked: false },
+        { name: '社会IB', year: 1, dept: 'J', category: '選択', credits: 2, checked: false },
+        { name: '体育', year: 1, dept: 'C', category: '選択', credits: 1, checked: false },
+        { name: '国語IA', year: 2, dept: 'M', category: '必修', credits: 2, checked: false },
+        { name: '国語IB', year: 2, dept: 'E', category: '必修', credits: 2, checked: false },
+        { name: '地理A', year: 2, dept: 'D', category: '必修', credits: 1, checked: false },
+        { name: '地理B', year: 2, dept: 'J', category: '必修', credits: 2, checked: false },
+        { name: '美術', year: 2, dept: 'C', category: '必修', credits: 1, checked: false },
+
+        { name: '英語A', year: 1, dept: 'J', category: '必修', credits: 2, checked: false },
+        { name: '英語B', year: 1, dept: 'J', category: '必修', credits: 2, checked: false },
+        { name: '英語IA', year: 1, dept: 'J', category: '必修', credits: 2, checked: false },
+        { name: '英語IB', year: 1, dept: 'J', category: '必修', credits: 2, checked: false },
+        { name: '英語IA', year: 1, dept: 'J', category: '必修', credits: 2, checked: false },
+        { name: '英語IB', year: 1, dept: 'J', category: '必修', credits: 2, checked: false },
+        { name: '芸術', year: 1, dept: 'J', category: '必修', credits: 2, checked: false },
+        { name: '国語IA', year: 1, dept: 'J', category: '必修', credits: 2, checked: false },
+        { name: '国語IB', year: 1, dept: 'J', category: '必修', credits: 2, checked: false },
+        { name: '地理A', year: 1, dept: 'J', category: '必修', credits: 2, checked: false },
+        { name: '地理B', year: 1, dept: 'J', category: '必修', credits: 2, checked: false },
+        { name: '保健体育IA', year: 1, dept: 'J', category: '必修', credits: 2, checked: false },
+        { name: '保健体育IB', year: 1, dept: 'J', category: '必修', credits: 2, checked: false },
+        { name: '基礎化学IA', year: 1, dept: 'J', category: '必修', credits: 2, checked: false },
+        { name: '基礎化学IB', year: 1, dept: 'J', category: '必修', credits: 2, checked: false },
+        { name: '基礎数学I', year: 1, dept: 'J', category: '必修', credits: 6, checked: false },
+        { name: '基礎数学II', year: 1, dept: 'J', category: '必修', credits: 4, checked: false },
+        { name: '基礎数学III', year: 1, dept: 'J', category: '必修', credits: 2, checked: false },
+        { name: '物理学I', year: 1, dept: 'J', category: '必修', credits: 2, checked: false },
+        { name: 'コンピュータ入門I', year: 1, dept: 'J', category: '必修', credits: 2, checked: false },
+        { name: 'コンピュータ入門II', year: 1, dept: 'J', category: '必修', credits: 2, checked: false },
+        { name: 'コンピュータ演習I', year: 1, dept: 'J', category: '必修', credits: 2, checked: false },
+        { name: 'コンピュータ演習II', year: 1, dept: 'J', category: '必修', credits: 2, checked: false },
+        { name: '技術者入門I', year: 1, dept: 'J', category: '必修', credits: 2, checked: false },
+        { name: '技術者入門II', year: 1, dept: 'J', category: '必修', credits: 2, checked: false },
+        { name: '実験・実習IA', year: 1, dept: 'J', category: '必修', credits: 2, checked: false },
+        { name: '実験・実習IB', year: 1, dept: 'J', category: '必修', credits: 2, checked: false },
+        { name: '情報セキュリティ演習', year: 1, dept: 'J', category: '選択', credits: 2, checked: false },
+        // その他のコース情報を追加...
       ],
+      years: [1, 2, 3, 4, 5],
       departments: ['M', 'E', 'D', 'J', 'C'], // 学科
-      years: [1, 2, 3, 4, 5], // 学年
-      selectedDept: null,
-      selectedYear: null, // 初期設定はnull
+      selectedDept: 'J', // 初期状態でJ学科が選択されるように設定
+      selectedYear: 1, // 初期状態は1年を選択
       requiredChecked: false,
       electiveChecked: false,
       searchQuery: '',
@@ -135,31 +169,35 @@ export default {
         .reduce((sum, course) => sum + course.credits, 0);
     },
     filterCourses() {
-      // 初期状態で全コースを取得
       let filtered = this.courses;
 
-      // 教科名でフィルタリング
+      // Department filtering
+      if (this.selectedDept) {
+        filtered = filtered.filter(course => course.dept === this.selectedDept);
+      }
+
+      // Course name search
       if (this.searchQuery) {
         filtered = filtered.filter(course => course.name.includes(this.searchQuery));
       }
 
-      // 必修または選択科目でフィルタリング
+      // Required/Elective filtering
       if (this.requiredChecked && this.electiveChecked) {
-        // 両方選択
-        // 何も変更しない
+        // Show all courses if both are checked
       } else if (this.requiredChecked) {
         filtered = filtered.filter(course => course.category === '必修');
       } else if (this.electiveChecked) {
         filtered = filtered.filter(course => course.category === '選択');
       }
 
-      // 学年でフィルタリング
-      if (this.selectedYear) {
-        filtered = filtered.filter(course => course.year === this.selectedYear);
+      // Academic year filtering based on multi-select
+      if (this.selectedYears.length) {
+        filtered = filtered.filter(course => this.selectedYears.includes(course.year));
       }
 
-      this.filteredCourses = filtered; // フィルタリング結果を更新
+      this.filteredCourses = filtered;
     },
+
     toggleCourse(course) {
       course.checked = !course.checked;
     },
@@ -169,7 +207,7 @@ export default {
     }
   },
   mounted() {
-    this.filteredCourses = this.courses; // 初期状態で全てのコースを表示
+    this.filterCourses(); // 初期状態でJ学科のコースを表示
   },
 };
 </script>
