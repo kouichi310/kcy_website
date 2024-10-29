@@ -66,7 +66,6 @@
               </v-list-item>
             </v-list>
           </v-menu>
-          {{ taskTimeError }}
         </v-col>
         <!-- 土日表示の切り替え -->
         <v-col>
@@ -79,9 +78,9 @@
         </v-col>
         <!-- タスク追加ボタン -->
         <v-col>
-          <v-btn color="green" size="large" @click="dialog = true">タスクの追加</v-btn>
+          <v-btn color="green" size="large" @click="addTaskDialog = true">タスクの追加</v-btn>
       
-          <v-dialog v-model="dialog" max-width="600px">
+          <v-dialog v-model="addTaskDialog" max-width="600px">
             <v-card>
               <v-card-title>
                 <span class="headline">新しいタスク</span>
@@ -89,39 +88,37 @@
                 <v-card-text>
                   <!-- タスク名入力 -->
                   タスク名
-                  <v-text-field label="タスク名"></v-text-field>
+                  <v-text-field v-model="taskName" label="タスク名"></v-text-field>
                   <!-- タスク日時入力 -->
                   <div>
                     開始日時
                     <v-row>
                       <v-col>
                         <v-date-input 
-                          v-model="task_date_start_value" 
+                          v-model="taskDateStart" 
                           label="日付"
-                          @change="checkInvalidTime"
                         ></v-date-input>
                       </v-col>
                       <v-col>
                         <v-text-field
-                          v-model="task_time_start_value"
-                          :active="task_time_start_menu"
-                          @focus="task_time_start_menu = true"
-                          @blur="task_time_start_menu = false"
+                          v-model="taskTimeStart"
+                          :active="taskTimeStartMenu"
+                          @focus="taskTimeStartMenu = true"
+                          @blur="taskTimeStartMenu = false"
                           label="時刻"
                           prepend-icon="mdi-clock-time-four-outline"
                           readonly
                         >
                           <v-menu
-                            v-model="task_time_start_menu"
+                            v-model="taskTimeStartMenu"
                             :close-on-content-click="false"
                             activator="parent"
                             transition="scale-transition"
                           >
                             <v-time-picker
-                              v-if="task_time_start_menu"
-                              v-model="task_time_start_value"
+                              v-if="taskTimeStartMenu"
+                              v-model="taskTimeStart"
                               format="24hr"
-                              @change="checkInvalidTime"
                               full-width
                             ></v-time-picker>
                           </v-menu>
@@ -134,30 +131,29 @@
                     <v-row>
                       <v-col>
                         <v-date-input 
-                          v-model="task_date_end_value" 
+                          v-model="taskDateEnd" 
                           label="日付"
-                          @change="checkInvalidTime"  
                         ></v-date-input>
                       </v-col>
                       <v-col>
                         <v-text-field
-                          v-model="task_time_end_value"
-                          :active="task_time_end_menu"
-                          @focus="task_time_end_menu = true"
-                          @blur="task_time_end_menu = false"
+                          v-model="taskTimeEnd"
+                          :active="taskTimeEndMenu"
+                          @focus="taskTimeEndMenu = true"
+                          @blur="taskTimeEndMenu = false"
                           label="時刻"
                           prepend-icon="mdi-clock-time-four-outline"
                           readonly
                         >
                           <v-menu
-                              v-model="task_time_end_menu"
+                              v-model="taskTimeEndMenu"
                               :close-on-content-click="false"
                               activator="parent"
                               transition="scale-transition"
                             >
                               <v-time-picker
-                                v-if="task_time_end_menu"
-                                v-model="task_time_end_value"
+                                v-if="taskTimeEndMenu"
+                                v-model="taskTimeEnd"
                                 format="24hr"
                                 @change="checkInvalidTime"
                                 full-width
@@ -168,13 +164,13 @@
                     </v-row>
                   </div>
                   <!-- エラーメッセージ -->
-                  <v-alert v-if="taskTimeError" type="error">
-                    {{ taskTimeError }}
+                  <v-alert v-if="addTaskError" type="error">
+                    {{ addTaskErrorMes }}
                   </v-alert>
                 </v-card-text>
               <v-card-actions>
-                <v-btn color="primary" @click="dialog = false">閉じる</v-btn>
-                <v-btn color="primary" @click="dialog = false">追加</v-btn>
+                <v-btn color="primary" @click="addTaskClose">閉じる</v-btn>
+                <v-btn color="primary" @click="addTask">追加</v-btn>
               </v-card-actions>
             </v-card>
           </v-dialog>
@@ -195,22 +191,52 @@
         ></v-calendar>
       </v-sheet>
     </div>
-    <!--タスクの表示-->
-    <div v-if="calendar_or_task === '1'"> 
-      <h1>{{ disp_year }}年{{ disp_month }}月</h1> 
-      <div v-if="Object.keys(filteredTasksByMonth).length === 0">
-        <p>今月の予定はありません。</p>
-      </div>
-      <div v-for="(tasks, date) in filteredTasksByMonth" :key="date">
-        <ul> 
-          <li v-for="task in tasks" :key="task.name"> 
-            {{ formatDate(task.start) }} {{ formatTime(task.start) }} - {{ formatTime(task.end) }} : {{ task.name }} 
-          </li> 
-        </ul> 
-        <v-divider></v-divider> 
+    <!-- タスクの表示 --> 
+    <div v-if="calendar_or_task === '1'" style="text-align: center;">
+      <div style="height: 600px;">
+        <h1>{{ disp_year }}年{{ disp_month }}月</h1>   
+        <div v-if="Object.keys(filteredTasksByMonth).length === 0">  
+          <p>今月の予定はありません。</p>  
+        </div>  
+        <div v-for="(tasks, date) in filteredTasksByMonth" :key="date" style="display: flex; flex-direction: column; align-items: center;"> 
+          <ul style="width: 80%; max-width: 600px; padding: 0;"> 
+            <li  
+              v-for="task in tasks"  
+              :key="task.name"  
+              :style="{ backgroundColor: task.color, padding: '8px', borderRadius: '4px', color: '#fff', display: 'flex', alignItems: 'center', marginBottom: '8px' }" 
+            > 
+              <div style="flex: 1; text-align: left;"> 
+                {{ formatDate(task.start) }} {{ formatTime(task.start) }} - {{ formatTime(task.end) }} 
+              </div> 
+              <div style="flex: 1; text-align: right;"> 
+                {{ task.name }} 
+              </div> 
+            </li> 
+          </ul> 
+          <v-divider style="width: 80%; max-width: 600px;"></v-divider>
+        </div>
       </div> 
-      <v-btn @click="prevMonth"><</v-btn> 
-      <v-btn @click="nextMonth">></v-btn> 
+
+      <!-- ボタンを画面の右下に固定し、デザインを追加 -->
+      <div style="bottom: 16px; right: 16px; z-index: 1000;">
+        <v-btn 
+          icon 
+          color="primary" 
+          @click="prevMonth"
+          class="mr-2"
+          aria-label="Previous month"
+        >
+          <v-icon>mdi-chevron-left</v-icon>
+        </v-btn>   
+        <v-btn 
+          icon 
+          color="primary" 
+          @click="nextMonth"
+          aria-label="Next month"
+        >
+          <v-icon>mdi-chevron-right</v-icon>
+        </v-btn> 
+      </div>
     </div>
     <!--ページ下部-->
     <Footer />
@@ -240,19 +266,22 @@ export default{
       month_or_week: '0',
       dispweekend: false,
       //タスク関連のデータ
-      taskTimeError: "era--",
-      dialog: false,
-      task_time_start_menu: false,
-      task_time_end_menu: false,
-      task_time_start_value: null,
-      task_time_end_value: null,
-      task_date_start_value: null,
-      task_date_end_value: null,
+      addTaskDialog: false,
+      addTaskError: false,
+      addTaskErrorMes: '',
+      taskTimeStartMenu: false,
+      taskTimeEndMenu: false,
+      taskName: null,
+      taskTimeStart: null,
+      taskTimeEnd: null,
+      taskDateStart: null,
+      taskDateEnd: null,
       tasks: [
         { name: 'イベント1', start: new Date('2024-10-21T18:00'), end: new Date('2024-10-21T21:00'), color: 'blue' },
         { name: 'イベント2', start: new Date('2024-10-21T21:00'), end: new Date('2024-10-21T23:59'), color: 'green' },
-        { name: 'イベント3', start: new Date('2024-11-21T18:00'), end: new Date('2024-11-21T21:00'), color: 'blue' },
-        { name: 'イベント4', start: new Date('2025-01-01T18:00'), end: new Date('2024-01-01T21:00'), color: 'blue' }
+        { name: 'イベント3', start: new Date('2024-10-22T21:00'), end: new Date('2024-10-22T23:59'), color: 'green' },
+        { name: 'イベント4', start: new Date('2024-11-21T18:00'), end: new Date('2024-11-21T21:00'), color: 'blue' },
+        { name: 'イベント5', start: new Date('2025-01-01T18:00'), end: new Date('2025-01-01T21:00'), color: 'blue' }
       ],
       //カレンダー機能のデータ
       grade: ['1年'],
@@ -267,18 +296,38 @@ export default{
   },
 
   computed: {
+    //タスク開始時間
+    taskStart(){
+      const [startTimeHours, startTimeMinutes] = this.taskTimeStart.split(':').map(Number);
+      const start = this.taskDateStart;
+
+      start.setHours(start.getHours() + startTimeHours);
+      start.setMinutes(start.getMinutes() + startTimeMinutes);
+
+      return start;
+    },
+    //タスク終了時間
+    taskEnd(){
+      const [endTimeHours, endTimeMinutes] = this.taskTimeEnd.split(':').map(Number);
+      const end = this.taskDateEnd;
+
+      end.setHours(end.getHours() + endTimeHours);
+      end.setMinutes(end.getMinutes() + endTimeMinutes);
+
+      return end;
+    },
     //月表示/週表示の切り替え
     disptype(){
-      if(this.month_or_week == '0'){
+      if(this.month_or_week === '0'){
         return 'month';
       }
       else{
-        return 'week'
+        return 'week';
       }
     },
     //土日表示の切り替え
     weekdays(){
-      if(this.dispweekend == true){
+      if(this.dispweekend === true){
         return [0, 1, 2, 3, 4, 5, 6];
       }
       else{
@@ -313,29 +362,47 @@ export default{
   },
 
   methods: {
+    //タスクの追加処理
+    addTask(){
+      if(this.cheakNullData()){
+        this.addTaskError = true;
+      }
+      else if(this.checkInvalidTime()){
+        this.addTaskError = true;
+      }
+      else{
+        this.tasks.push({ name: this.taskName, start: this.taskDateStart, end: this.taskDateEnd, color: 'blue' });
+        this.addTaskClose();
+      }
+    },
+    //タスク追加ダイアログを閉じる処理
+    addTaskClose(){
+      this.addTaskError = false;
+      this.addTaskDialog = false;
+      this.taskName = null;
+      this.taskTimeStart = null;
+      this.taskTimeEnd = null;
+      this.taskDateStart = null;
+      this.taskDateEnd = null;
+    },
+    //入力されていない項目があったらエラー
+    cheakNullData(){
+      if( this.taskName === null || 
+          this.taskTimeStart === null ||
+          this.taskTimeEnd === null ||
+          this.taskDateStart === null ||
+          this.taskDateEnd === null){
+            this.addTaskErrorMes = '入力されていない項目があります';
+            return true;
+          }
+    },
+    //タスクの開始時間が終了時間より遅ければエラーを出力
     checkInvalidTime() {
-  console.log('checkInvalidTime called');
-  console.log('Start Date:', this.task_date_start_value);
-  console.log('Start Time:', this.task_time_start_value);
-  console.log('End Date:', this.task_date_end_value);
-  console.log('End Time:', this.task_time_end_value);
-
-  // ここでのstartDateとstartTimeはどちらもundefinedでないことを確認
-  if (this.task_date_start_value && this.task_time_start_value && 
-      this.task_date_end_value && this.task_time_end_value) {
-    
-    const start = new Date(`${this.task_date_start_value}T${this.task_time_start_value}`);
-    const end = new Date(`${this.task_date_end_value}T${this.task_time_end_value}`);
-
-    if (end < start) {
-      this.taskTimeError = "終了日時は開始日時よりも後でなければなりません。";
-    } else {
-      this.taskTimeError = null; // エラーがなければクリア
-    }
-  } else {
-    console.log('日時が不完全です');
-  }
-},
+      if(this.taskStart > this.taskEnd){
+        this.addTaskErrorMes = '開始時間は終了時間よりも早くなければいけません';
+        return true;
+      }
+    },
     //カレンダー/タスク切り替えボタンの制御
     click_calendar_or_task(event){
       this.calendar_or_task = event.id;
