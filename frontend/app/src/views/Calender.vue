@@ -79,7 +79,6 @@
         <!-- タスク追加ボタン -->
         <v-col>
           <v-btn color="green" size="large" @click="addTaskDialog = true">タスクの追加</v-btn>
-      
           <v-dialog v-model="addTaskDialog" max-width="600px">
             <v-card>
               <v-card-title>
@@ -168,12 +167,12 @@
                     {{ addTaskErrorMes }}
                   </v-alert>
                 </v-card-text>
-              <v-card-actions>
-                <v-btn color="primary" @click="addTaskClose">閉じる</v-btn>
-                <v-btn color="primary" @click="addTask">追加</v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
+                <v-card-actions>
+                  <v-btn color="primary" @click="addTaskClose">閉じる</v-btn>
+                  <v-btn color="primary" @click="addTask">追加</v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
         </v-col>
       </v-row>
     </div>
@@ -188,55 +187,104 @@
           :weekdays="weekdays"
           :events="tasks"
           :view-mode="disptype"
-        ></v-calendar>
+        >
+        <!--カレンダー上でタスク追加aaaaaaaaaaaaaaaa-->
+        <!--どうすればいいんだ-->
+        
+        <!--タスク詳細表示-->
+        <template v-slot:event="{event,day}">
+          <div>
+            <v-btn :color="event.color" @click="showTaskDetail(event)">{{ event.name }}</v-btn>
+            <v-dialog v-model="taskDetailDialog" max-width="600px">
+              <v-card>
+                <v-card-title>
+                  <span class="headline">{{ taskDetail.name }}</span>
+                </v-card-title>
+                <v-card-text>
+                  <v-container>
+                    <p>開始 {{ formatDate(taskDetail.start) }} {{ formatTime(taskDetail.start) }}</p>
+                    <p>終了 {{ formatDate(taskDetail.end) }}  {{ formatTime(taskDetail.end) }}</p>
+                    <v-btn @click="makeLog(day)">確認用</v-btn>
+                  </v-container>
+                </v-card-text>
+                <v-card-actions>
+                  <v-btn color="primary" @click="taskDetailDialog = false">閉じる</v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
+          </div>
+        </template>
+      </v-calendar>
       </v-sheet>
+      <!-- valueの中身を調べたい、確認用プログラム -->
+      <div v-for="dateData in value" v-bind="dateData.date">
+        {{ dateData }}
+      </div>
     </div>
     <!-- タスクの表示 --> 
     <div v-if="calendar_or_task === '1'" style="text-align: center;">
-      <div style="height: 600px;">
-        <h1>{{ disp_year }}年{{ disp_month }}月</h1>   
-        <div v-if="Object.keys(filteredTasksByMonth).length === 0">  
-          <p>今月の予定はありません。</p>  
-        </div>  
-        <div v-for="(tasks, date) in filteredTasksByMonth" :key="date" style="display: flex; flex-direction: column; align-items: center;"> 
-          <ul style="width: 80%; max-width: 600px; padding: 0;"> 
-            <li  
-              v-for="task in tasks"  
-              :key="task.name"  
-              :style="{ backgroundColor: task.color, padding: '8px', borderRadius: '4px', color: '#fff', display: 'flex', alignItems: 'center', marginBottom: '8px' }" 
+      <!--タスク一覧部分-->
+      <div style="height: 600px; overflow-y: auto;">
+        <h1>{{ disp_year }}年{{ disp_month }}月</h1>    
+        <div v-if="Object.keys(filteredTasksByMonth).length === 0">   
+          <p>今月の予定はありません。</p>   
+        </div>   
+        <div v-for="(tasks, date) in filteredTasksByMonth" :key="date" style="display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid #000000;">  
+          <h3> {{ date }} </h3> 
+          <ul style="width: 80%; padding: 8px; margin: 0; list-style: none; overflow-y: auto; max-height: 400px;  max-width:600px;">  
+            <li   
+              v-for="task in tasks"   
+              :key="task.name"     
             > 
-              <div style="flex: 1; text-align: left;"> 
-                {{ formatDate(task.start) }} {{ formatTime(task.start) }} - {{ formatTime(task.end) }} 
-              </div> 
-              <div style="flex: 1; text-align: right;"> 
-                {{ task.name }} 
-              </div> 
-            </li> 
-          </ul> 
-          <v-divider style="width: 80%; max-width: 600px;"></v-divider>
-        </div>
-      </div> 
-
-      <!-- ボタンを画面の右下に固定し、デザインを追加 -->
-      <div style="bottom: 16px; right: 16px; z-index: 1000;">
+              <div style="display:flex;">
+                <p style="margin-right:25px">{{ formatTime(task.start) }} - {{ formatTime(task.end) }}</p>
+                <v-btn @click="showTaskDrtail(task)" :style="{ backgroundColor: task.color, padding: '8px', borderRadius: '4px', color: '#fff', alignItems: 'center', marginBottom: '8px' }"> {{ task.name }} </v-btn> 
+              </div>
+            </li>
+          </ul>
+          <v-divider style=""></v-divider>
+        </div> 
+      </div>
+      <!--月送りボタン部分-->
+      <div>
         <v-btn 
-          icon 
+          depressed
+          min-width="120"
+          large
           color="primary" 
           @click="prevMonth"
-          class="mr-2"
           aria-label="Previous month"
         >
           <v-icon>mdi-chevron-left</v-icon>
         </v-btn>   
         <v-btn 
-          icon 
-          color="primary" 
+          depressed
+          min-width="120"
+          large
+          color="primary"
           @click="nextMonth"
           aria-label="Next month"
         >
           <v-icon>mdi-chevron-right</v-icon>
         </v-btn> 
       </div>
+      <!-- タスク画面にタスク詳細ダイアログを追加 -->
+      <v-dialog v-model="taskDetailDialog" max-width="600px">
+        <v-card>
+          <v-card-title>
+            <span class="headline">{{ taskDetail.name }}</span>
+          </v-card-title>
+          <v-card-text>
+            <v-container>
+              <p>開始 {{ formatDate(taskDetail.start) }} {{ formatTime(taskDetail.start) }}</p>
+              <p>終了 {{ formatDate(taskDetail.end) }} {{ formatTime(taskDetail.end) }}</p>
+            </v-container>
+          </v-card-text>
+          <v-card-actions>
+            <v-btn color="primary" @click="taskDetailDialog = false">閉じる</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </div>
     <!--ページ下部-->
     <Footer />
@@ -277,11 +325,11 @@ export default{
       taskDateStart: null,
       taskDateEnd: null,
       tasks: [
-        { name: 'イベント1', start: new Date('2024-10-21T18:00'), end: new Date('2024-10-21T21:00'), color: 'blue' },
-        { name: 'イベント2', start: new Date('2024-10-21T21:00'), end: new Date('2024-10-21T23:59'), color: 'green' },
-        { name: 'イベント3', start: new Date('2024-10-22T21:00'), end: new Date('2024-10-22T23:59'), color: 'green' },
-        { name: 'イベント4', start: new Date('2024-11-21T18:00'), end: new Date('2024-11-21T21:00'), color: 'blue' },
-        { name: 'イベント5', start: new Date('2025-01-01T18:00'), end: new Date('2025-01-01T21:00'), color: 'blue' }
+        { name: '情報理論追試', start: new Date('2024-10-21T18:00'), end: new Date('2024-10-21T21:00'), color: 'blue' },
+        { name: '入学式', start: new Date('2024-10-22T21:00'), end: new Date('2024-10-22T23:59'), color: 'green' },
+        { name: '卒業式', start: new Date('2024-10-23T21:00'), end: new Date('2024-10-23T23:59'), color: 'green' },
+        { name: '実験実習レポート提出', start: new Date('2024-10-24T18:00'), end: new Date('2024-10-24T21:00'), color: 'blue' },
+        { name: '知能システム振替', start: new Date('2025-10-25T18:00'), end: new Date('2025-10-25T21:00'), color: 'blue' }
       ],
       //カレンダー機能のデータ
       grade: ['1年'],
@@ -289,6 +337,8 @@ export default{
       course: ['M'],
       courselist: ['M', 'E', 'D', 'J', 'C'],
       value: [new Date()],
+      taskDetailDialog: false,
+      taskDetail: null,
       //タスク表示機能のデータ
       disp_year: new Date().getFullYear(), 
       disp_month: new Date().getMonth() + 1,
@@ -362,6 +412,10 @@ export default{
   },
 
   methods: {
+    //ログの出力
+    makeLog(data){
+      console.log(data)
+    },
     //タスクの追加処理
     addTask(){
       if(this.cheakNullData()){
@@ -410,6 +464,11 @@ export default{
     //月/週切り替えボタンの制御
     click_month_or_week(event){
       this.month_or_week = event.id;
+    },
+    //タスクの詳細表示
+    showTaskDetail(task){
+      this.taskDetail = task;
+      this.taskDetailDialog = true;
     },
     //年,月日,時間をフォーマット(例: 2024/10/23, 9:00:00 AM)
     formatDate(date) {
