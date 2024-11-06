@@ -158,7 +158,7 @@ export default {
       ],
       years: [1, 2, 3, 4, 5],
       departments: ['M', 'E', 'D', 'J', 'C'],
-      selectedDept: 'J',
+      selectedDept: 'null',
       yearFilters: { 1: false, 2: false, 3: false, 4: false, 5: false }, // 学年ごとのフィルター
       requiredChecked: false,
       electiveChecked: false,

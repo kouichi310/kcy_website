@@ -183,13 +183,13 @@
       <v-sheet>
         <v-calendar
           ref="calendar"
-          v-model="value"
+          :v-model="value"
           :weekdays="weekdays"
           :events="tasks"
           :view-mode="disptype"
         >
         <!--カレンダー上でタスク追加aaaaaaaaaaaaaaaa-->
-        <!--どうすればいいんだ-->
+        
         
         <!--タスク詳細表示-->
         <template v-slot:event="{event,day}">
@@ -296,6 +296,7 @@ import Footer from '../components/Footer.vue';
 import { VCalendar } from 'vuetify/labs/VCalendar';
 import { VDateInput } from 'vuetify/labs/VDateInput';
 import { VTimePicker } from 'vuetify/labs/VTimePicker';
+import { ref } from 'vue';
 
 export default{
   name: 'App',
@@ -414,7 +415,7 @@ export default{
   methods: {
     //ログの出力
     makeLog(data){
-      console.log(data)
+      console.log(data);
     },
     //タスクの追加処理
     addTask(){
