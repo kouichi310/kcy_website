@@ -219,18 +219,18 @@ export default {
       this.scheduleData['5']['M'][1][2] = { content: '卒業研究\nM科全教員'}
 
       this.scheduleData['5']['M'][2][0] = { content: '論文作成技法\n[講3]\n小田'};
-      this.scheduleData['5']['M'][2][1] = { content: '工業英語演習\n[図フ]\n板垣}
-      this.scheduleData['5']['M'][2][2] = { content: ''卒業研究\nM科全教員}
-      this.scheduleData['5']['M'][2][3] = { content: ''課題学習時間}
+      //this.scheduleData['5']['M'][2][1] = { content: '工業英語演習\n[図フ]\n板垣}
+      //this.scheduleData['5']['M'][2][2] = { content: ''卒業研究\nM科全教員}
+      //this.scheduleData['5']['M'][2][3] = { content: ''課題学習時間}
 
-      this.scheduleData['5']['M'][3][0] = { content: ''工学演習IV[ワA]\n小田};
-      this.scheduleData['5']['M'][3][1] = { content: ''体育III\nH大野}
-      this.scheduleData['5']['M'][3][2] = { content: ''卒業研究\nM科全教員}
+      //this.scheduleData['5']['M'][3][0] = { content: ''工学演習IV[ワA]\n小田};
+      //this.scheduleData['5']['M'][3][1] = { content: ''体育III\nH大野}
+      //this.scheduleData['5']['M'][3][2] = { content: ''卒業研究\nM科全教員}
 
-      this.scheduleData['5']['M'][4][0] = { content: ''工学演習III\n[M]\n内田};
-      this.scheduleData['5']['M'][4][1] = { content: ''卒業研究\nM科全教員}
-      this.scheduleData['5']['M'][4][2] = { content: ''卒業研究\nM科全教員}
-      this.scheduleData['5']['M'][4][3] = { content: ''課題学習時間}
+      //this.scheduleData['5']['M'][4][0] = { content: ''工学演習III\n[M]\n内田};
+      //this.scheduleData['5']['M'][4][1] = { content: ''卒業研究\nM科全教員}
+      //this.scheduleData['5']['M'][4][2] = { content: ''卒業研究\nM科全教員}
+      //this.scheduleData['5']['M'][4][3] = { content: ''課題学習時間}
 
     //1年J科
       this.scheduleData['1']['J'][0][0] = { content: '国語IB\n加田'};
