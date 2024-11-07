@@ -30,8 +30,8 @@
     </v-row>
 
     <!-- 個別学年フィルタリングボタン -->
-    <v-row>
-      <v-col v-for="year in years" :key="year" cols="4">
+    <v-row class="d-flex justify-start">
+      <v-col v-for="year in years" :key="year" cols="auto">
         <v-btn :color="yearFilters[year] ? 'primary' : 'default'" @click="toggleYearFilter(year)">
           {{ year }}年
         </v-btn>
@@ -41,7 +41,7 @@
     <!-- 必修/選択科目フィルタリング -->
     <v-row>
       <v-col cols="12">
-        <v-checkbox label="必修科目" v-model="requiredChecked" @change="filterCourses"></v-checkbox>
+        <v-checkbox label="必修科目を全選択" v-model="requiredChecked" @change="filterCourses"></v-checkbox>
         <v-checkbox label="選択科目" v-model="electiveChecked" @change="filterCourses"></v-checkbox>
       </v-col>
     </v-row>

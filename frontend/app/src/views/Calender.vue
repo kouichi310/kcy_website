@@ -183,43 +183,41 @@
       <v-sheet>
         <v-calendar
           ref="calendar"
-          :v-model="value"
+          v-model="value"
           :weekdays="weekdays"
           :events="tasks"
           :view-mode="disptype"
+          @input="handleDateSelect"
         >
-        <!--カレンダー上でタスク追加aaaaaaaaaaaaaaaa-->
+          <!--カレンダー上でタスク追加-->
         
         
-        <!--タスク詳細表示-->
-        <template v-slot:event="{event,day}">
-          <div>
-            <v-btn :color="event.color" @click="showTaskDetail(event)">{{ event.name }}</v-btn>
-            <v-dialog v-model="taskDetailDialog" max-width="600px">
-              <v-card>
-                <v-card-title>
-                  <span class="headline">{{ taskDetail.name }}</span>
-                </v-card-title>
-                <v-card-text>
-                  <v-container>
-                    <p>開始 {{ formatDate(taskDetail.start) }} {{ formatTime(taskDetail.start) }}</p>
-                    <p>終了 {{ formatDate(taskDetail.end) }}  {{ formatTime(taskDetail.end) }}</p>
-                    <v-btn @click="makeLog(day)">確認用</v-btn>
-                  </v-container>
-                </v-card-text>
-                <v-card-actions>
-                  <v-btn color="primary" @click="taskDetailDialog = false">閉じる</v-btn>
-                </v-card-actions>
-              </v-card>
-            </v-dialog>
-          </div>
-        </template>
-      </v-calendar>
+          <!--タスク詳細表示v-if="month_or_week === '0'"-->
+          <template v-slot:event="{event,day}">
+            <div>
+              <v-btn :color="event.color" @click="showTaskDetail(event)">{{ event.name }}</v-btn>
+              <v-dialog v-model="taskDetailDialog" max-width="600px">
+                <v-card>
+                  <v-card-title>
+                    <span class="headline">{{ taskDetail.name }}</span>
+                  </v-card-title>
+                  <v-card-text>
+                    <v-container>
+                      <p>開始 {{ formatDate(taskDetail.start) }} {{ formatTime(taskDetail.start) }}</p>
+                      <p>終了 {{ formatDate(taskDetail.end) }}  {{ formatTime(taskDetail.end) }}</p>
+                      <v-btn @click="makeLog(day)">確認用</v-btn>
+                    </v-container>
+                  </v-card-text>
+                  <v-card-actions>
+                    <v-btn color="primary" @click="taskDetailDialog = false">閉じる</v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-dialog>
+            </div>
+          </template>
+        </v-calendar>
       </v-sheet>
       <!-- valueの中身を調べたい、確認用プログラム -->
-      <div v-for="dateData in value" v-bind="dateData.date">
-        {{ dateData }}
-      </div>
     </div>
     <!-- タスクの表示 --> 
     <div v-if="calendar_or_task === '1'" style="text-align: center;">
@@ -500,6 +498,10 @@ export default{
       } else {
         this.disp_month += 1;
       }
+    },
+
+    handleDateSelect(date) {
+      console.log("選択された日付:", date);
     }
   }
 };
