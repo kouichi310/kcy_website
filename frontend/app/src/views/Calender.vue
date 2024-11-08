@@ -218,6 +218,8 @@
         </v-calendar>
       </v-sheet>
       <!-- valueの中身を調べたい、確認用プログラム -->
+      <div>
+      </div>
     </div>
     <!-- タスクの表示 --> 
     <div v-if="calendar_or_task === '1'" style="text-align: center;">
@@ -294,6 +296,8 @@ import Footer from '../components/Footer.vue';
 import { VCalendar } from 'vuetify/labs/VCalendar';
 import { VDateInput } from 'vuetify/labs/VDateInput';
 import { VTimePicker } from 'vuetify/labs/VTimePicker';
+//import FullCalendar from '@fullcalendar/vue3';
+//import dayGridPlugin from '@fullcalendar/daygrid';
 import { ref } from 'vue';
 
 export default{
@@ -304,6 +308,7 @@ export default{
     VCalendar,
     VDateInput,
     VTimePicker,
+    //FullCalendar,
   },
 
   data() {
