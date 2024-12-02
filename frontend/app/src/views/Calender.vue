@@ -5,9 +5,12 @@
       <v-row>
         <!-- テスト -->
         <v-col>
-          <v-btn @click="makeLog(this.calApi.getEventSourceById( 'myTask' ))">
+          <v-btn @click="makeLog(calApi.getEvents())">
             テスト
-          </v-btn>  
+          </v-btn>
+          <v-btn @click="makeLog(calApi)">
+            テスト2
+          </v-btn>
         </v-col>
         <!--学年を選択するプルダウン-->
         <v-col>
@@ -80,16 +83,6 @@
           <v-switch
             v-model="dispweekend"
             label="土日も表示"
-            color="blue"
-            inset
-            class="mt-2"
-          ></v-switch>
-        </v-col>
-        <!-- 自分のタスク表示の切り替え -->
-        <v-col>
-          <v-switch
-            v-model="dispMyTasks"
-            label="自分のタスク"
             color="blue"
             inset
             class="mt-2"
@@ -338,17 +331,18 @@
                 </v-row>
                 <v-row>
                   <v-text-field 
-                    v-model="newTask.extendedProps.location"
+                    v-model="newTask.extendedProps.place"
                     label="場所"
                     prepend-icon="mdi-map-marker"
                   />
                 </v-row>
                 <v-row>
                   <v-col>
-                    <v-icon icon="mdi-account" size="x-large" color="grey-darken-1" class="mt-10"/>
+                    <v-icon icon="mdi-account" size="x-large" color="grey-darken-1" class="mt-16"/>
                   </v-col>
                   <v-col>
                     <v-icon icon="mdi-check" size="x-large" color="grey-darken-1" class="mt-2"/>
+                    <p><v-icon icon="mdi-check" size="x-large" color="grey-darken-1" class="mt-9"/></p>
                     <p><v-icon icon="mdi-check" size="x-large" color="grey-darken-1" class="mt-9"/></p>
                   </v-col>
                   <v-col>
@@ -364,6 +358,14 @@
                       </div>
                       <div v-else>
                         <v-btn @click="newTask.extendedProps.course[0] = true">M</v-btn>
+                      </div>
+                    </p>
+                    <p class="mt-8">
+                      <div v-if="newTask.extendedProps.category == 1">
+                        <v-btn color="red">イベント</v-btn>
+                      </div>
+                      <div v-else>
+                        <v-btn @click="newTask.extendedProps.category = 1">イベント</v-btn>
                       </div>
                     </p>
                   </v-col>
@@ -382,6 +384,14 @@
                         <v-btn @click="newTask.extendedProps.course[1] = true">E</v-btn>
                       </div>
                     </p>
+                    <p class="mt-8">
+                      <div v-if="newTask.extendedProps.category == 2">
+                        <v-btn color="blue">就職</v-btn>
+                      </div>
+                      <div v-else>
+                        <v-btn @click="newTask.extendedProps.category = 2">就職</v-btn>
+                      </div>
+                    </p>
                   </v-col>
                   <v-col>
                     <div v-if="newTask.extendedProps.grade[2] == true">
@@ -396,6 +406,14 @@
                       </div>
                       <div v-else>
                         <v-btn @click="newTask.extendedProps.course[2] = true">D</v-btn>
+                      </div>
+                    </p>
+                    <p class="mt-8">
+                      <div v-if="newTask.extendedProps.category == 3">
+                        <v-btn color="green">進学</v-btn>
+                      </div>
+                      <div v-else>
+                        <v-btn @click="newTask.extendedProps.category = 3">進学</v-btn>
                       </div>
                     </p>
                   </v-col>
@@ -414,6 +432,14 @@
                         <v-btn @click="newTask.extendedProps.course[3] = true">J</v-btn>
                       </div>
                     </p>
+                    <p class="mt-8">
+                      <div v-if="newTask.extendedProps.category == 4">
+                        <v-btn color="orange-darken-1">振替</v-btn>
+                      </div>
+                      <div v-else>
+                        <v-btn @click="newTask.extendedProps.category = 4">振替</v-btn>
+                      </div>
+                    </p>
                   </v-col>
                   <v-col>
                     <div v-if="newTask.extendedProps.grade[4] == true">
@@ -430,7 +456,32 @@
                         <v-btn @click="newTask.extendedProps.course[4] = true">C</v-btn>
                       </div>
                     </p>
+                    <p class="mt-8">
+                      <div v-if="newTask.extendedProps.category == 5">
+                        <v-btn color="blue-grey-lighten-1">その他</v-btn>
+                      </div>
+                      <div v-else>
+                        <v-btn @click="newTask.extendedProps.category = 5">その他</v-btn>
+                      </div>
+                    </p>
                   </v-col>
+                </v-row>
+                <v-row>
+                  <v-icon icon="mdi-lock" color="grey-darken-1" class="mt-2"/>                  
+                  <div v-if="newTask.extendedProps.public == true" class="ml-10">
+                    <v-btn color="green" @click="newTask.extendedProps.public = false">公開</v-btn>
+                  </div>
+                  <div v-else>
+                    <v-btn @click="newTask.extendedProps.public = true" class="ml-10">公開</v-btn>
+                  </div>              
+                </v-row>
+                <v-row>
+                  <v-text-field
+                    class="mt-8"
+                    v-model="newTask.extendedProps.detail"
+                    label="詳細"
+                    prepend-icon="mdi-information"
+                  />
                 </v-row>
               </v-container>
             </v-card-text>
@@ -440,7 +491,7 @@
             </v-card-actions>
           </v-card>
         </v-dialog>
-      </div>     
+      </div>  
     </div>
     <!-- タスクの表示 --> 
     <div v-if="calendar_or_task === '1'" style="text-align: center;">
@@ -536,44 +587,8 @@ export default{
   data() {
     return {
       //fullcalendar
-      //自分のタスク、データベースの代わり
-      myTasks: [{ title:'再試', start:'2024-11-11', end:'2024-11-13', backgroundColor:'red', extendedProps:{location:'', type:'', grade:[], course:[]}}],
-      //学年のタスク、データベースの代わり
-      gradeTasks: [
-        {
-          events:[{ title:'1年データ', start:'2024-11-16', end:'2024-11-17', backgroundColor:'red', extendedProps:{location:'', type:'', grade:[], course:[]}}]
-        },
-        {
-          events:[]
-        },
-        {
-          events:[]
-        },
-        {
-          events:[]
-        },
-        {
-          events:[]
-        },
-      ],
-      //学科のタスク、データベースの代わり
-      courseTasks: [
-        {
-          events:[]
-        },
-        {
-          events:[]
-        },
-        {
-          events:[]
-        },
-        {
-          events:[]
-        },
-        {
-          events:[]
-        },
-      ],
+      //自分のタスク
+      myTasks: { title:'再試', start:'2024-12-11', end:'2024-12-13', backgroundColor:'red', extendedProps:{place:'', type:'', grade:[], course:[]}},
       calApi: null,
       //カレンダーのオプション
       calendarOptions: {
@@ -582,8 +597,21 @@ export default{
         eventClick: this.dispTaskDetail,              //イベントクリックイベント
         dateClick: this.fullAddTask,                  //日付クリックイベント 
       },
-      dispMyTasks: true,
-      newTask: {title: '', start:'', end:'', backgroundColor:'', extendedProps:{location:'aaa', type:'', grade: Array(5).fill(false), course: Array(5).fill(false)}},
+      newTask: {id:'',
+                title:'',
+                start:'',
+                end:'', 
+                extendedProps:{ detail:'',
+                                place:'aaa',
+                                public:false, 
+                                grade:Array(5).fill(false),
+                                course:Array(5).fill(false),
+                                category:0,
+                                create_email:'',
+                                change_email:'',
+                                create_at:'',
+                                change_at:''},
+                backgroundColor:''},
       newTaskTime: {startMenu:false, startValue:null , endMenu:false, end:null},
       fullDetailDialog: false,
       fullDetail: null,
@@ -591,6 +619,7 @@ export default{
       taskTypeList: [],
       errorMes: '',
       errorValue: false,
+      tasklist: null,
       //表示切り替え機能のデータ
       calendar_or_task: '0',
       month_or_week: '0',
@@ -630,20 +659,10 @@ export default{
 
   mounted(){
     this.calApi = this.$refs.fullCalendar.getApi();
-    //eventSourcesの初期化
-    this.calApi.addEventSource({id: 'myTask', events: this.myTasks, display:'block'});
-    let listNum = 1;
-    for(let gradeNum=1; gradeNum<this.gradelist.length; gradeNum++){
-        this.calApi.addEventSource({id: this.gradelist[gradeNum], events: this.gradeTasks[gradeNum-1].events});
-        listNum += 1;
-    }
-    for(let courseNum=1; courseNum<this.courselist.length; courseNum++){
-        this.calApi.addEventSource({id: this.courselist[courseNum], events: this.courseTasks[courseNum-1].events});
-        console.log(this.courselist[courseNum]);
-        listNum += 1;
-    }
-    //calendarApi.addEvent({ title:'1年データ', start:'2024-11-16', end:'2024-11-17', backgroundColor:'red', extendedProps:{location:'', type:''}},'1年');
-    //calendarApi.getEventSources().refetch();  
+    this.calApi.addEvent(this.myTasks);
+    this.calApi.addEvent(this.myTasks);
+    this.tasklist = this.calApi.getEvents();
+    this.makeLog(this.tasklist);
   },
 
   computed: {
@@ -727,7 +746,7 @@ export default{
       if( this.newTask.name === null || 
           this.newTask.start === null ||
           this.newTask.end === null ||
-          this.newTask.extendedProps.location === null){
+          this.newTask.extendedProps.place === null){
         this.errorMes = '入力されていない項目があります';
         return true;
       }
@@ -804,6 +823,7 @@ export default{
       this.taskDetail = task;
       this.taskDetailDialog = true;
     },
+    
     //年,月日,時間をフォーマット(例: 2024/10/23, 9:00:00 AM)
     formatDate(date) {
       return date.toLocaleString();

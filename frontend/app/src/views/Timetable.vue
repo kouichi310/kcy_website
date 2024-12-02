@@ -77,38 +77,38 @@ export default {
   }, 
  
   data() { 
-    return { 
-      selectedGrade: '1',  // 初期選択
-      selectedClass: 'J',  // 初期選択
-      grades: ['1', '2', '3', '4', '5'],  // 学年
-      classes: ['M', 'E', 'D', 'J', 'C'],  // 学科
-      weekdays:[' ', '月', '火', '水', '木', '金'], // 曜日
-      timePeriods: ['1,2限', '3,4限', '5,6限', '7,8限'], // 時限
-      timetableRows: Array.from({ length: 4 }), // 縦列(時限)
-      timetableColumns: Array.from({ length: 5 }), //　横列(曜日) 
-      // 5学年 × 5学科 × 5曜日 × 4限のデータ
-      scheduleData: {
-        '1': this.generateEmptySchedule(),
-        '2': this.generateEmptySchedule(),
-        '3': this.generateEmptySchedule(),
-        '4': this.generateEmptySchedule(),
-        '5': this.generateEmptySchedule(),
-      }
-    } 
+    const generateEmptySchedule = () => { 
+      const emptyData = () => Array.from({ length: 5 }, () => Array.from({ length: 4 }, () => ({ content: '' }))); 
+      return { 
+        'M': emptyData(), 
+        'E': emptyData(), 
+        'D': emptyData(), 
+        'J': emptyData(), 
+        'C': emptyData(), 
+      }; 
+    }; 
+
+    return {    
+      selectedGrade: '1',  // 初期選択 
+      selectedClass: 'J',  // 初期選択 
+      grades: ['1', '2', '3', '4', '5'],  // 学年 
+      classes: ['M', 'E', 'D', 'J', 'C'],  // 学科 
+      weekdays: [' ', '月', '火', '水', '木', '金'], // 曜日 
+      timePeriods: ['1,2限', '3,4限', '5,6限', '7,8限'], // 時限 
+      timetableRows: Array.from({ length: 4 }), // 縦列(時限) 
+      timetableColumns: Array.from({ length: 5 }), // 横列(曜日)  
+      // 5学年 × 5学科 × 5曜日 × 4限のデータ 
+      scheduleData: { 
+        '1': generateEmptySchedule(), 
+        '2': generateEmptySchedule(), 
+        '3': generateEmptySchedule(), 
+        '4': generateEmptySchedule(), 
+        '5': generateEmptySchedule(), 
+      }, 
+    }; 
   },
 
   methods: {
-    // 空のスケジュールを生成する関数
-    generateEmptySchedule() {
-      return {
-        'M': Array.from({ length: 5 }, () => Array.from({ length: 4 }, () => ({ content : '' }))),
-        'E': Array.from({ length: 5 }, () => Array.from({ length: 4 }, () => ({ content : '' }))),
-        'D': Array.from({ length: 5 }, () => Array.from({ length: 4 }, () => ({ content : '' }))),
-        'J': Array.from({ length: 5 }, () => Array.from({ length: 4 }, () => ({ content : '' }))),
-        'C': Array.from({ length: 5 }, () => Array.from({ length: 4 }, () => ({ content : '' }))),
-      };
-    },
-
     // サンプルデータを設定する関数(4次元配列 this.scheduleData['[学年]']['[学科]'][[曜日(0~4)]][時限(0~3)])
     setSampleSchedule() {
     //1年M科
@@ -758,5 +758,6 @@ export default {
 .v-btn--active {
   background-color: #4CAF50;
   color: white;
+  border-radius: 50px;
 }
 </style>
