@@ -3,8 +3,14 @@
     <!--ページ上部-->
     <div>
       <v-row>
+        <!-- テスト -->
+        <v-col>
+          <v-btn @click="makeLog(this.calApi.getEventSourceById( 'myTask' ))">
+            テスト
+          </v-btn>  
+        </v-col>
         <!--学年を選択するプルダウン-->
-        <v-col cols="4">
+        <v-col>
           <v-select
             v-model="grade"
             :items="gradelist"
@@ -13,10 +19,11 @@
             variant="outlined"
             dense
             hide-details
+            @update:modelValue="changeTasks()"
           ></v-select>
         </v-col>
         <!--学科を選択するプルダウン-->
-        <v-col  cols="4">
+        <v-col>
           <v-select
             v-model="course"
             :items="courselist"
@@ -25,13 +32,14 @@
             variant="outlined"
             dense
             hide-details
+            @update:modelValue="changeTasks()"
           ></v-select>
         </v-col>
         <!-- カレンダー/タスク切り替え -->
         <v-col>
           <v-menu>
             <template v-slot:activator="{ props }">
-              <v-btn color="primary" v-bind="props">
+              <v-btn color="primary" v-bind="props" class="mt-4">
                 <!-- calendar_or_task:0でカレンダー表示、1でタスク表示 -->
                 <div v-if="calendar_or_task === '0'">カレンダー</div>
                 <div v-else-if="calendar_or_task === '1'">タスク  </div>
@@ -51,7 +59,7 @@
         <v-col>
           <v-menu>
             <template v-slot:activator="{ props }">
-              <v-btn color="primary" v-bind="props">
+              <v-btn color="primary" v-bind="props" class="mt-4">
                 <!-- month_or_week:0で月表示、1で週表示 -->
                 <div v-if="month_or_week === '0'">月で表示</div>
                 <div v-else-if="month_or_week === '1'">週で表示</div>
@@ -74,11 +82,22 @@
             label="土日も表示"
             color="blue"
             inset
+            class="mt-2"
+          ></v-switch>
+        </v-col>
+        <!-- 自分のタスク表示の切り替え -->
+        <v-col>
+          <v-switch
+            v-model="dispMyTasks"
+            label="自分のタスク"
+            color="blue"
+            inset
+            class="mt-2"
           ></v-switch>
         </v-col>
         <!-- タスク追加ボタン -->
         <v-col>
-          <v-btn color="green" size="large" @click="addTaskDialog = true">タスクの追加</v-btn>
+          <v-btn color="green" size="large" @click="addTaskDialog = true" class="mt-3">タスクの追加</v-btn>
           <v-dialog v-model="addTaskDialog" max-width="600px">
             <v-card>
               <v-card-title>
@@ -169,7 +188,7 @@
                 </v-card-text>
                 <v-card-actions>
                   <v-btn color="primary" @click="addTaskClose">閉じる</v-btn>
-                  <v-btn color="primary" @click="addTask">追加</v-btn>
+                  <v-btn color="primary" @click="oldAddTask">追加</v-btn>
                 </v-card-actions>
               </v-card>
             </v-dialog>
@@ -180,6 +199,7 @@
     <!--ページ中部-->
     <!-- カレンダーの表示 週表示-->
     <div v-if="calendar_or_task === '0'">
+      <!--
       <v-sheet>
         <v-calendar
           ref="calendar"
@@ -189,10 +209,8 @@
           :view-mode="disptype"
           @input="handleDateSelect"
         >
-          <!--カレンダー上でタスク追加-->
-        
-        
-          <!--タスク詳細表示v-if="month_or_week === '0'"-->
+          <カレンダー上でタスク追加>
+          <タスク詳細表示v-if="month_or_week === '0'">
           <template v-slot:event="{event,day}">
             <div>
               <v-btn :color="event.color" @click="showTaskDetail(event)">{{ event.name }}</v-btn>
@@ -217,9 +235,212 @@
           </template>
         </v-calendar>
       </v-sheet>
-      <!-- valueの中身を調べたい、確認用プログラム -->
+    -->
+      <!-- fullcalendar -->
       <div>
-      </div>
+        <full-calendar ref="fullCalendar" :options="calendarOptions"/>
+        <!-- タスク詳細表示 -->
+        <v-dialog v-model="fullDetailDialog" max-width="600px">
+          <v-card>
+            <v-card-title>
+              <span class="headline">{{ fullDetail.title }}</span>
+            </v-card-title>
+            <v-card-text>
+              <v-container>
+                <p>開始 {{ formatDate(fullDetail.start) }} {{ formatTime(fullDetail.start) }}</p>
+                <p>終了 {{ formatDate(fullDetail.end) }} {{ formatTime(fullDetail.end)}}</p>
+              </v-container>
+            </v-card-text>
+            <v-card-actions>
+              <v-btn color="primary" @click="fullDetailDialog = false">閉じる</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+        <!-- 日付でタスク追加 -->
+        <v-dialog v-model="fullAddDialog" max-width="1000px">
+          <v-card>
+            <v-card-title>
+              <span class="headline"><h2>新規タスク</h2></span>
+            </v-card-title>
+            <v-card-text>
+              <v-container>
+                <v-row>
+                  <v-text-field 
+                    v-model="newTask.title"
+                    label="タスク名"
+                    prepend-icon="mdi-pencil"
+                  />
+                </v-row>
+                <v-row>
+                  <v-col>
+                    <v-date-input 
+                      v-model="newTask.start" 
+                      label="日付"
+                      readonly
+                    ></v-date-input>
+                  </v-col>
+                  <v-col>
+                    <v-text-field
+                      v-model="newTaskTime.startValue"
+                      :active="newTaskTime.startMenu"
+                      :focus="newTaskTime.startMenu"
+                      label="時刻"
+                      prepend-icon="mdi-clock-time-four-outline"
+                      readonly
+                    >
+                      <v-menu
+                        v-model="newTaskTime.startMenu"
+                        :close-on-content-click="false"
+                        activator="parent"
+                        transition="scale-transition"
+                      >
+                        <v-time-picker
+                          v-if="newTaskTime.startMenu"
+                          v-model="newTaskTime.startValue"
+                          format="24hr"
+                          full-width
+                        />
+                      </v-menu>
+                    </v-text-field>
+                  </v-col>
+                  <v-icon icon="mdi-chevron-right" size="x-large" color="grey-darken-1" class="mt-6"/>
+                  <v-col>
+                    <v-date-input 
+                        v-model="newTask.end" 
+                        label="日付"
+                        readonly
+                    ></v-date-input>
+                  </v-col>
+                  <v-col>
+                    <v-text-field
+                      v-model="newTaskTime.endValue"
+                      :active="newTaskTime.endMenu"
+                      :focus="newTaskTime.endMenu"
+                      label="時刻"
+                      prepend-icon="mdi-clock-time-four-outline"
+                      readonly
+                    >
+                      <v-menu
+                        v-model="newTaskTime.endMenu"
+                        :close-on-content-click="false"
+                        activator="parent"
+                        transition="scale-transition"
+                      >
+                        <v-time-picker
+                          v-if="newTaskTime.endMenu"
+                          v-model="newTaskTime.endValue"
+                          format="24hr"
+                          full-width
+                        />
+                      </v-menu>
+                    </v-text-field>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-text-field 
+                    v-model="newTask.extendedProps.location"
+                    label="場所"
+                    prepend-icon="mdi-map-marker"
+                  />
+                </v-row>
+                <v-row>
+                  <v-col>
+                    <v-icon icon="mdi-account" size="x-large" color="grey-darken-1" class="mt-10"/>
+                  </v-col>
+                  <v-col>
+                    <v-icon icon="mdi-check" size="x-large" color="grey-darken-1" class="mt-2"/>
+                    <p><v-icon icon="mdi-check" size="x-large" color="grey-darken-1" class="mt-9"/></p>
+                  </v-col>
+                  <v-col>
+                    <div v-if="newTask.extendedProps.grade[0] == true">
+                      <v-btn color="primary" @click="newTask.extendedProps.grade[0] = false">1年</v-btn>
+                    </div>
+                    <div v-else>
+                      <v-btn @click="newTask.extendedProps.grade[0] = true">1年</v-btn>
+                    </div>
+                    <p class="mt-8">
+                      <div v-if="newTask.extendedProps.course[0] == true">
+                        <v-btn color="primary" @click="newTask.extendedProps.course[0] = false">M</v-btn>
+                      </div>
+                      <div v-else>
+                        <v-btn @click="newTask.extendedProps.course[0] = true">M</v-btn>
+                      </div>
+                    </p>
+                  </v-col>
+                  <v-col>
+                    <div v-if="newTask.extendedProps.grade[1] == true">
+                      <v-btn color="primary" @click="newTask.extendedProps.grade[1] = false">2年</v-btn>
+                    </div>
+                    <div v-else>
+                      <v-btn @click="newTask.extendedProps.grade[1] = true">2年</v-btn>
+                    </div>
+                    <p class="mt-8">
+                      <div v-if="newTask.extendedProps.course[1] == true">
+                        <v-btn color="primary" @click="newTask.extendedProps.course[1] = false">E</v-btn>
+                      </div>
+                      <div v-else>
+                        <v-btn @click="newTask.extendedProps.course[1] = true">E</v-btn>
+                      </div>
+                    </p>
+                  </v-col>
+                  <v-col>
+                    <div v-if="newTask.extendedProps.grade[2] == true">
+                      <v-btn color="primary" @click="newTask.extendedProps.grade[2] = false">3年</v-btn>
+                    </div>
+                    <div v-else>
+                      <v-btn @click="newTask.extendedProps.grade[2] = true">3年</v-btn>
+                    </div>
+                    <p class="mt-8">
+                      <div v-if="newTask.extendedProps.course[2] == true">
+                        <v-btn color="primary" @click="newTask.extendedProps.course[2] = false">D</v-btn>
+                      </div>
+                      <div v-else>
+                        <v-btn @click="newTask.extendedProps.course[2] = true">D</v-btn>
+                      </div>
+                    </p>
+                  </v-col>
+                  <v-col>
+                    <div v-if="newTask.extendedProps.grade[3] == true">
+                      <v-btn color="primary" @click="newTask.extendedProps.grade[3] = false">4年</v-btn>
+                    </div>
+                    <div v-else>
+                      <v-btn @click="newTask.extendedProps.grade[3] = true">4年</v-btn>
+                    </div>
+                    <p class="mt-8">
+                      <div v-if="newTask.extendedProps.course[3] == true">
+                        <v-btn color="primary" @click="newTask.extendedProps.course[3] = false">J</v-btn>
+                      </div>
+                      <div v-else>
+                        <v-btn @click="newTask.extendedProps.course[3] = true">J</v-btn>
+                      </div>
+                    </p>
+                  </v-col>
+                  <v-col>
+                    <div v-if="newTask.extendedProps.grade[4] == true">
+                      <v-btn color="primary" @click="newTask.extendedProps.grade[4] = false">5年</v-btn>
+                    </div>
+                    <div v-else>
+                      <v-btn @click="newTask.extendedProps.grade[4] = true">5年</v-btn>
+                    </div>
+                    <p class="mt-8">
+                      <div v-if="newTask.extendedProps.course[4] == true">
+                        <v-btn color="primary" @click="newTask.extendedProps.course[4] = false">C</v-btn>
+                      </div>
+                      <div v-else>
+                        <v-btn @click="newTask.extendedProps.course[4] = true">C</v-btn>
+                      </div>
+                    </p>
+                  </v-col>
+                </v-row>
+              </v-container>
+            </v-card-text>
+            <v-card-actions>
+              <v-btn color="primary" @click="fullAddDialog=false">閉じる</v-btn>
+              <v-btn color="primary" @click="addTask">追加</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </div>     
     </div>
     <!-- タスクの表示 --> 
     <div v-if="calendar_or_task === '1'" style="text-align: center;">
@@ -296,8 +517,9 @@ import Footer from '../components/Footer.vue';
 import { VCalendar } from 'vuetify/labs/VCalendar';
 import { VDateInput } from 'vuetify/labs/VDateInput';
 import { VTimePicker } from 'vuetify/labs/VTimePicker';
-//import FullCalendar from '@fullcalendar/vue3';
-//import dayGridPlugin from '@fullcalendar/daygrid';
+import FullCalendar from '@fullcalendar/vue3';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import interactionPlugin from '@fullcalendar/interaction';
 import { ref } from 'vue';
 
 export default{
@@ -308,11 +530,67 @@ export default{
     VCalendar,
     VDateInput,
     VTimePicker,
-    //FullCalendar,
+    FullCalendar,
   },
 
   data() {
     return {
+      //fullcalendar
+      //自分のタスク、データベースの代わり
+      myTasks: [{ title:'再試', start:'2024-11-11', end:'2024-11-13', backgroundColor:'red', extendedProps:{location:'', type:'', grade:[], course:[]}}],
+      //学年のタスク、データベースの代わり
+      gradeTasks: [
+        {
+          events:[{ title:'1年データ', start:'2024-11-16', end:'2024-11-17', backgroundColor:'red', extendedProps:{location:'', type:'', grade:[], course:[]}}]
+        },
+        {
+          events:[]
+        },
+        {
+          events:[]
+        },
+        {
+          events:[]
+        },
+        {
+          events:[]
+        },
+      ],
+      //学科のタスク、データベースの代わり
+      courseTasks: [
+        {
+          events:[]
+        },
+        {
+          events:[]
+        },
+        {
+          events:[]
+        },
+        {
+          events:[]
+        },
+        {
+          events:[]
+        },
+      ],
+      calApi: null,
+      //カレンダーのオプション
+      calendarOptions: {
+        locale: 'ja',                                 //表示言語
+        plugins: [dayGridPlugin, interactionPlugin],  //プラグイン
+        eventClick: this.dispTaskDetail,              //イベントクリックイベント
+        dateClick: this.fullAddTask,                  //日付クリックイベント 
+      },
+      dispMyTasks: true,
+      newTask: {title: '', start:'', end:'', backgroundColor:'', extendedProps:{location:'aaa', type:'', grade: Array(5).fill(false), course: Array(5).fill(false)}},
+      newTaskTime: {startMenu:false, startValue:null , endMenu:false, end:null},
+      fullDetailDialog: false,
+      fullDetail: null,
+      fullAddDialog: false,
+      taskTypeList: [],
+      errorMes: '',
+      errorValue: false,
       //表示切り替え機能のデータ
       calendar_or_task: '0',
       month_or_week: '0',
@@ -336,10 +614,11 @@ export default{
         { name: '知能システム振替', start: new Date('2025-10-25T18:00'), end: new Date('2025-10-25T21:00'), color: 'blue' }
       ],
       //カレンダー機能のデータ
-      grade: ['1年'],
-      gradelist: ['1年', '2年', '3年', '4年', '5年'],
-      course: ['M'],
-      courselist: ['M', 'E', 'D', 'J', 'C'],
+      grade: ['1年'],        //表示する学年
+      gradelist: ['選択しない', '1年', '2年', '3年', '4年', '5年'],   //表示できる学年のリスト
+      course: ['M'],        //表示する学科
+      courselist: ['選択しない', 'M', 'E', 'D', 'J', 'C'],      //表示できる学科のリスト
+      onlyMyTask: true,   //自分のタスクのみ表示するか
       value: [new Date()],
       taskDetailDialog: false,
       taskDetail: null,
@@ -347,6 +626,24 @@ export default{
       disp_year: new Date().getFullYear(), 
       disp_month: new Date().getMonth() + 1,
     };
+  },
+
+  mounted(){
+    this.calApi = this.$refs.fullCalendar.getApi();
+    //eventSourcesの初期化
+    this.calApi.addEventSource({id: 'myTask', events: this.myTasks, display:'block'});
+    let listNum = 1;
+    for(let gradeNum=1; gradeNum<this.gradelist.length; gradeNum++){
+        this.calApi.addEventSource({id: this.gradelist[gradeNum], events: this.gradeTasks[gradeNum-1].events});
+        listNum += 1;
+    }
+    for(let courseNum=1; courseNum<this.courselist.length; courseNum++){
+        this.calApi.addEventSource({id: this.courselist[courseNum], events: this.courseTasks[courseNum-1].events});
+        console.log(this.courselist[courseNum]);
+        listNum += 1;
+    }
+    //calendarApi.addEvent({ title:'1年データ', start:'2024-11-16', end:'2024-11-17', backgroundColor:'red', extendedProps:{location:'', type:''}},'1年');
+    //calendarApi.getEventSources().refetch();  
   },
 
   computed: {
@@ -416,13 +713,46 @@ export default{
   },
 
   methods: {
+    //fullcalendarタスク追加
+    addTask(){
+      if(this.cheakNullData()){
+        this.errorValue = true;
+      }
+      else{
+        console.log("aaa");
+        this.calApi.addEvent(this.newTask, 'myTask');
+      }
+    },
+    cheakNullData(){
+      if( this.newTask.name === null || 
+          this.newTask.start === null ||
+          this.newTask.end === null ||
+          this.newTask.extendedProps.location === null){
+        this.errorMes = '入力されていない項目があります';
+        return true;
+      }
+      return false;
+    },
+    //fullcalendarイベントクリック時のイベント詳細表示
+    dispTaskDetail: function(arg){
+      this.fullDetail = arg.event;
+      this.fullDetailDialog = true;
+      console.log(arg);
+    },
+    //日付をクリックしてイベント追加
+    fullAddTask: function(arg){
+      this.newTask.start = arg.date;
+      this.newTask.end = arg.date;
+      console.log(arg);
+      this.fullAddDialog = true;
+    },
     //ログの出力
     makeLog(data){
       console.log(data);
     },
     //タスクの追加処理
-    addTask(){
-      if(this.cheakNullData()){
+    oldAddTask(){
+      if(this.oldCheakNullData()){
         this.addTaskError = true;
       }
       else if(this.checkInvalidTime()){
@@ -444,7 +774,7 @@ export default{
       this.taskDateEnd = null;
     },
     //入力されていない項目があったらエラー
-    cheakNullData(){
+    oldCheakNullData(){
       if( this.taskName === null || 
           this.taskTimeStart === null ||
           this.taskTimeEnd === null ||
@@ -504,7 +834,6 @@ export default{
         this.disp_month += 1;
       }
     },
-
     handleDateSelect(date) {
       console.log("選択された日付:", date);
     }
