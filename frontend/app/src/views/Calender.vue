@@ -503,7 +503,7 @@
 
     <!--ページ中部-->
     <!-- カレンダー-->
-    <div v-if="calendar_or_task === '0'">
+    <div v-show="calendar_or_task =='0'">
       <div>
         <!-- カレンダーの表示 -->
         <full-calendar ref="fullCalendar" :options="calendarOptions"/>
@@ -511,7 +511,7 @@
     </div>
     
     <!-- タスクの表示 -->     
-    <div v-if="calendar_or_task === '1'" style="display: flex; justify-content: center;">
+    <div v-show="calendar_or_task == '1'" style="display: flex; justify-content: center;">
       <v-card v-for="task in taskList" min-width="600px" max-width="600px" style="text-align: center;"> 
         <p>{{ formatDate(task.start) }}  ({{ formatDay(task.start) }}) {{ formatTime(task.start) }} - {{ formatDate(task.end) }}  ({{ formatDay(task.end) }}) {{ formatTime(task.end) }}</p>
         <h3>{{ task.title }} </h3>  
