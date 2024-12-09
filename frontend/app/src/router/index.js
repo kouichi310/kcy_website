@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+//import { useAuthStore } from '@/stores';
 import Home from '../views/Home.vue'
 import Login from '../views/Login.vue'
 import Calender from '../views/Calender.vue'

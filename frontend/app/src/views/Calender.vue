@@ -2,40 +2,71 @@
   <div>
     <!--ページ上部-->
     <div>
+      <!--表示する学年学科の入力ボックス-->
       <v-row>
-      </v-row>
-      <v-row>
-        <!--学年を選択するプルダウン-->
         <v-col>
-          <v-select
-            v-model="grade"
-            :items="gradelist"
-            class="ma-2"
-            label="学年"
-            variant="outlined"
-            dense
-            hide-details
-            @update:modelValue="changeTasks()"
-          ></v-select>
-        </v-col>
-        <!--学科を選択するプルダウン-->
-        <v-col>
-          <v-select
-            v-model="course"
-            :items="courselist"
-            class="ma-2"
-            label="学科"
-            variant="outlined"
-            dense
-            hide-details
-            @update:modelValue="changeTasks()"
-          ></v-select>
+          <v-sheet 
+            color="grey-lighten-3"
+            rounded="lg"
+            height="50px"
+            width="700px"
+            class="mt-2 ml-2"
+            border
+          >
+            <div class="d-flex align-center fill-height">
+              <v-btn variant="plain" icon="mdi-plus" @click="editDispGC"/>
+              <div 
+                v-for="grade in gradeList"
+                v-show="grade.disp == true"
+                class="ml-1"
+              >
+                <v-card
+                  height="38px"
+                  width="60px"
+                  border
+                >
+                  <div class="d-flex align-center justify-center fill-height">
+                    {{ grade.name }}
+                    <v-btn 
+                      icon="mdi-close"
+                      size="x-small"
+                      width="18px"
+                      height="18px"
+                      color="grey-lighten-3"
+                      class="mb-1 ml-1"/>            
+                  </div>
+                </v-card>
+              </div>
+              <div
+                v-for="course in courseList"
+                v-show="course.disp == true"
+                class="ml-1"
+              >
+                <v-card
+                  height="38px"
+                  width="57px"
+                  border
+                >
+                  <div class="d-flex align-center justify-center fill-height">
+                    {{ course.name }}
+                    <v-btn 
+                      icon="mdi-close"
+                      size="x-small"
+                      width="18px"
+                      height="18px"
+                      color="grey-lighten-3"
+                      class="mb-1 ml-1"/>            
+                  </div>
+                </v-card>
+              </div>
+            </div>   
+          </v-sheet>
         </v-col>
         <!-- カレンダー/タスク切り替え -->
         <v-col>
           <v-menu>
             <template v-slot:activator="{ props }">
-              <v-btn color="primary" v-bind="props" class="mt-4">
+              <v-btn color="primary" v-bind="props" class="mt-3">
                 <!-- calendar_or_task:0でカレンダー表示、1でタスク表示 -->
                 <div v-if="calendar_or_task === '0'">カレンダー</div>
                 <div v-else-if="calendar_or_task === '1'">タスク  </div>
@@ -55,7 +86,7 @@
         <v-col>
           <v-menu>
             <template v-slot:activator="{ props }">
-              <v-btn color="primary" v-bind="props" class="mt-4">
+              <v-btn color="primary" v-bind="props" class="mt-3">
                 <!-- calViewType:0で月表示、1で週表示 -->
                 <div v-if="calViewType === '0'">月で表示</div>
                 <div v-else-if="calViewType === '1'">週で表示</div>
@@ -85,6 +116,7 @@
           <v-btn icon="mdi-plus" size="x-large" color="green" @click="fullAddDialog = true" class="mt-1"></v-btn>
         </v-col>
       </v-row>
+      
       <!-- タスク詳細ダイアログ -->
       <v-dialog v-model="fullDetailDialog" max-width="1000px">
         <v-card>
@@ -503,7 +535,7 @@
 
     <!--ページ中部-->
     <!-- カレンダー-->
-    <div v-show="calendar_or_task =='0'">
+    <div v-show="calendar_or_task === '0'" class="bg-white">
       <div>
         <!-- カレンダーの表示 -->
         <full-calendar ref="fullCalendar" :options="calendarOptions"/>
@@ -511,29 +543,22 @@
     </div>
     
     <!-- タスクの表示 -->     
-    <div v-show="calendar_or_task == '1'" style="display: flex; justify-content: center;">
-      <v-card v-for="task in taskList" min-width="600px" max-width="600px" style="text-align: center;"> 
-        <p>{{ formatDate(task.start) }}  ({{ formatDay(task.start) }}) {{ formatTime(task.start) }} - {{ formatDate(task.end) }}  ({{ formatDay(task.end) }}) {{ formatTime(task.end) }}</p>
-        <h3>{{ task.title }} </h3>  
+    <div v-show="calendar_or_task === '1'" style="display: flex; justify-content: center;">
+      <!--タスク一覧-->
+      <v-card v-for="task in taskList" @click="dispTaskDetail(task)" min-width="600px" max-width="600px" style="text-align: center;"> 
+        <p>{{ formatDate(task.start.months) }}  ({{ formatDay(task.start) }}) {{ formatTime(task.start) }} - {{ formatDate(task.end) }}  ({{ formatDay(task.end) }}) {{ formatTime(task.end) }}</p>
+        <h3>{{ task.title }} </h3>
       </v-card>
+      
+      <!--先月送り-->
+      <v-button @click="nextMonth">
+        
+      </v-button>
 
-      <!-- タスク画面にタスク詳細ダイアログを追加 -->
-      <v-dialog v-model="taskDetailDialog" max-width="600px">
-        <v-card>
-          <v-card-title>
-            <span class="headline">{{ taskDetail.name }}</span>
-          </v-card-title>
-          <v-card-text>
-            <v-container>
-              <p>開始 {{ formatDate(taskDetail.start) }} {{ formatTime(taskDetail.start) }}</p>
-              <p>終了 {{ formatDate(taskDetail.end) }} {{ formatTime(taskDetail.end) }}</p>
-            </v-container>
-          </v-card-text>
-          <v-card-actions>
-            <v-btn color="primary" @click="taskDetailDialog = false">閉じる</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
+      <!--次月送り-->
+      <v-button @click="prevMonth">
+
+      </v-button>
     </div>
       
     <!--ページ下部-->
@@ -602,7 +627,7 @@ export default{
         plugins: [dayGridPlugin, interactionPlugin],  //プラグイン
         initialView: 'dayGridMonth',
         weekends: true,
-        eventClick: this.dispTaskDetail,              //イベントクリックイベント
+        eventClick: this.clickEventFunc,              //イベントクリックイベント
         dateClick: this.dateAddTask,                  //日付クリックイベント
       },
       newTask:{
@@ -647,11 +672,20 @@ export default{
       taskDateStart: null,
       taskDateEnd: null,
       //カレンダー機能のデータ
-      grade: ['1年'],        //表示する学年
-      gradelist: ['選択しない', '1年', '2年', '3年', '4年', '5年'],   //表示できる学年のリスト
-      course: ['M'],        //表示する学科
-      courselist: ['選択しない', 'M', 'E', 'D', 'J', 'C'],      //表示できる学科のリスト
-      onlyMyTask: true,   //自分のタスクのみ表示するか
+      //学年のリスト
+      gradeList: [
+        {name:'1年', disp:false},
+        {name:'2年', disp:false},
+        {name:'3年', disp:false},
+        {name:'4年', disp:false},
+        {name:'5年', disp:false}],
+      //学科のリスト
+      courseList: [
+        {name:'M', disp:false},
+        {name:'E', disp:false},
+        {name:'D', disp:false},
+        {name:'J', disp:false},
+        {name:'C', disp:false}],
       value: [new Date()],
       taskDetailDialog: false,
       taskDetail: null,
@@ -664,12 +698,14 @@ export default{
   mounted(){
     this.calApi = this.$refs.fullCalendar.getApi();
     this.calApi.addEvent(this.saishiTask);
-    //this.calApi.addEvent(this.syushokuTask);
   },
 
   computed: {
     //タスクデータ
     taskList(){
+      if(this.calApi == null){
+       return null; 
+      }
       return this.calApi.getEvents();
     },
   },
@@ -734,8 +770,12 @@ export default{
       return false;
     },
     //fullcalendarイベントクリック時のイベント詳細表示
-    dispTaskDetail: function(arg){
-      this.fullDetail = arg.event;
+    clickEventFunc: function(arg){
+      this.dispTaskDetail(arg.event);
+    },
+    //イベント詳細表示
+    dispTaskDetail(task){
+      this.fullDetail = task;
       this.fullDetailDialog = true;
     },
     //日付をクリックしてイベント追加
@@ -813,6 +853,22 @@ export default{
       const [hours, minutes, seconds] = data.toLocaleTimeString().split(':');
       return hours + ':' + minutes;
     },
+    /*
+    //次月切り替え
+    nextMonth(){
+      if(month === 12){
+        month = 1;
+        year += 1;
+      }
+    },
+    //前月切り替え
+    prevMonth(){
+      if(month === 1){
+        month = 12;
+        year -= 1;
+      }
+    },
+    */
     handleDateSelect(date) {
       console.log("選択された日付:", date);
     },
