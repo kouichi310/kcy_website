@@ -14,7 +14,28 @@
             border
           >
             <div class="d-flex align-center fill-height">
-              <v-btn variant="plain" icon="mdi-plus" @click="editDispGC"/>
+              <v-menu>
+                <template v-slot:activator="{ props }">
+                  <v-btn 
+                    variant="plain" 
+                    icon="mdi-plus"
+                    v-bind="props"/>
+                </template>
+                <v-list>
+                  <v-list-item
+                    v-for="grade in gradeList"
+                    :key="grade.name"
+                    :title="grade.name"
+                    @click="grade.disp = true"
+                  ></v-list-item>
+                  <v-list-item
+                    v-for="course in courseList"
+                    :key="course.name"
+                    :title="course.name"
+                    @click="course.disp = true"
+                  ></v-list-item>
+                </v-list>
+              </v-menu>
               <div 
                 v-for="grade in gradeList"
                 v-show="grade.disp == true"
@@ -33,7 +54,8 @@
                       width="18px"
                       height="18px"
                       color="grey-lighten-3"
-                      class="mb-1 ml-1"/>            
+                      class="mb-1 ml-1"
+                      @click="grade.disp=false"/>            
                   </div>
                 </v-card>
               </div>
@@ -55,7 +77,8 @@
                       width="18px"
                       height="18px"
                       color="grey-lighten-3"
-                      class="mb-1 ml-1"/>            
+                      class="mb-1 ml-1"
+                      @click="course.disp=false"/>            
                   </div>
                 </v-card>
               </div>
@@ -564,7 +587,7 @@
     <!--ページ下部-->
     <!-- テスト -->
     <v-col>
-      <v-btn @click="makeLog(weekendsValue)">
+      <v-btn @click="taskList[0].setProp(display, 'none')">
         テスト
       </v-btn>
       <v-btn @click="makeLog(taskList)">
@@ -600,7 +623,7 @@ export default{
     return {
       //fullcalendar
       saishiTask:{ 
-        id:'a',
+        id:'1',
         title:'再試',
         start:'2024-12-11',
         end:'2024-12-13',
@@ -706,6 +729,14 @@ export default{
       if(this.calApi == null){
        return null; 
       }
+
+      const gotTasks = this.calApi.getEvents();
+      for(let i=0; i<this.gradeList.length; i++){
+        for(let j=0; j<gotTasks.length; j++){
+
+        }
+      }
+      
       return this.calApi.getEvents();
     },
   },
