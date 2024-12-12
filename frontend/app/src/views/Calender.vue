@@ -23,64 +23,68 @@
                 </template>
                 <v-list>
                   <v-list-item
-                    v-for="grade in gradeList"
+                    v-for="(grade, index) in gradeList"
                     :key="grade.name"
                     :title="grade.name"
-                    @click="grade.disp = true"
+                    @click="changeGradeDisp(index)"
                   ></v-list-item>
                   <v-list-item
-                    v-for="course in courseList"
+                    v-for="(course, index) in courseList"
                     :key="course.name"
                     :title="course.name"
-                    @click="course.disp = true"
+                    @click="changeCourseDisp(index)"
                   ></v-list-item>
                 </v-list>
               </v-menu>
               <div 
-                v-for="grade in gradeList"
-                v-show="grade.disp == true"
+                v-for="(grade, index) in gradeList"
                 class="ml-1"
               >
-                <v-card
-                  height="38px"
-                  width="60px"
-                  border
-                >
-                  <div class="d-flex align-center justify-center fill-height">
-                    {{ grade.name }}
-                    <v-btn 
-                      icon="mdi-close"
-                      size="x-small"
-                      width="18px"
-                      height="18px"
-                      color="grey-lighten-3"
-                      class="mb-1 ml-1"
-                      @click="grade.disp=false"/>            
-                  </div>
-                </v-card>
+                <div v-if="grade.disp == true">
+                  <v-card
+                    height="38px"
+                    width="60px"
+                    border
+                  >
+                    <div class="d-flex align-center justify-center fill-height">
+                      {{ grade.name }}
+                      <v-btn 
+                        icon="mdi-close"
+                        size="x-small"
+                        width="18px"
+                        height="18px"
+                        color="grey-lighten-3"
+                        class="mb-1 ml-1"
+                        @click="changeGradeDisp(index)"
+                      />            
+                    </div>
+                  </v-card>
+                </div>
               </div>
               <div
-                v-for="course in courseList"
-                v-show="course.disp == true"
+                v-for="(course, index) in courseList"
                 class="ml-1"
               >
-                <v-card
-                  height="38px"
-                  width="57px"
-                  border
-                >
-                  <div class="d-flex align-center justify-center fill-height">
-                    {{ course.name }}
-                    <v-btn 
-                      icon="mdi-close"
-                      size="x-small"
-                      width="18px"
-                      height="18px"
-                      color="grey-lighten-3"
-                      class="mb-1 ml-1"
-                      @click="course.disp=false"/>            
-                  </div>
-                </v-card>
+                <div v-if="course.disp == true">
+                  <v-card
+                    height="38px"
+                    width="57px"
+                    border
+                  >
+                    <div class="d-flex align-center justify-center fill-height">
+                      {{ course.name }}
+                      <v-btn 
+                        icon="mdi-close"
+                        size="x-small"
+                        width="18px"
+                        height="18px"
+                        color="grey-lighten-3"
+                        class="mb-1 ml-1"
+                        @click="changeCourseDisp(index)"
+                      />            
+                    </div>
+                  </v-card>
+                </div>
               </div>
             </div>   
           </v-sheet>
@@ -92,7 +96,7 @@
               <v-btn color="primary" v-bind="props" class="mt-3">
                 <!-- calendar_or_task:0でカレンダー表示、1でタスク表示 -->
                 <div v-if="calendar_or_task === '0'">カレンダー</div>
-                <div v-else-if="calendar_or_task === '1'">タスク  </div>
+                <div v-else-if="calendar_or_task === '1'">タスク </div>
               </v-btn>
             </template>
             <v-list @click:select="click_calendar_or_task">
@@ -127,11 +131,11 @@
         </v-col>
         <!-- 土日表示の切り替え -->
         <v-col>
-          <div v-if="calendarOptions.weekends == true" class="mt-4">
+          <div v-if="calendarOptions.weekends == true" class="mt-3">
             <v-btn color="primary" @click="calendarOptions.weekends = false">土日</v-btn>
           </div>
           <div v-else>
-            <v-btn @click="calendarOptions.weekends = true" class="mt-4">土日</v-btn>
+            <v-btn @click="calendarOptions.weekends = true" class="mt-3">土日</v-btn>
           </div>
         </v-col>
         <!-- タスク追加ボタン -->
@@ -558,7 +562,7 @@
 
     <!--ページ中部-->
     <!-- カレンダー-->
-    <div v-show="calendar_or_task === '0'" class="bg-white">
+    <div v-show="calendar_or_task == '0'">
       <div>
         <!-- カレンダーの表示 -->
         <full-calendar ref="fullCalendar" :options="calendarOptions"/>
@@ -566,28 +570,33 @@
     </div>
     
     <!-- タスクの表示 -->     
-    <div v-show="calendar_or_task === '1'" style="display: flex; justify-content: center;">
+    <div v-show="calendar_or_task == '1'" style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+      <!--月表示-->
+      <h1> {{ disp_year }} 年 {{ disp_month }} 月 </h1>
+      <br>
       <!--タスク一覧-->
-      <v-card v-for="task in taskList" @click="dispTaskDetail(task)" min-width="600px" max-width="600px" style="text-align: center;"> 
-        <p>{{ formatDate(task.start.months) }}  ({{ formatDay(task.start) }}) {{ formatTime(task.start) }} - {{ formatDate(task.end) }}  ({{ formatDay(task.end) }}) {{ formatTime(task.end) }}</p>
-        <h3>{{ task.title }} </h3>
-      </v-card>
-      
-      <!--先月送り-->
-      <v-button @click="nextMonth">
-        
-      </v-button>
-
-      <!--次月送り-->
-      <v-button @click="prevMonth">
-
-      </v-button>
+      <div style="height: 600px; overflow-y: auto;">
+        <v-card v-for="task in tasksByMonth" :key="task.id" @click="dispTaskDetail(task)" min-width="600px" max-width="600px" style="text-align: center;"> 
+          <p>{{ formatDate(task.start) }}  ({{ formatDay(task.start) }}) {{ formatTime(task.start) }} - {{ formatDate(task.end) }}  ({{ formatDay(task.end) }}) {{ formatTime(task.end) }}</p>
+          <h3>{{ task.title }} </h3>
+        </v-card>
+      </div>
+      <br>
+      <!--月送りボタン-->
+      <div style="display:flex;">
+        <v-btn @click="prevMonth()" color="primary">
+          <
+        </v-btn>
+        <v-btn @click="nextMonth()" color="primary">
+          >
+        </v-btn>
+      </div>
     </div>
       
     <!--ページ下部-->
     <!-- テスト -->
     <v-col>
-      <v-btn @click="taskList[0].setProp(display, 'none')">
+      <v-btn @click="makeLog(this.calApi.getEvents())">
         テスト
       </v-btn>
       <v-btn @click="makeLog(taskList)">
@@ -721,6 +730,8 @@ export default{
   mounted(){
     this.calApi = this.$refs.fullCalendar.getApi();
     this.calApi.addEvent(this.saishiTask);
+    this.updateGradeDisp();
+    this.updateCourseDisp();
   },
 
   computed: {
@@ -729,19 +740,83 @@ export default{
       if(this.calApi == null){
        return null; 
       }
-
-      const gotTasks = this.calApi.getEvents();
-      for(let i=0; i<this.gradeList.length; i++){
-        for(let j=0; j<gotTasks.length; j++){
-
-        }
-      }
-      
       return this.calApi.getEvents();
     },
+
+    tasksByMonth() {
+      // taskListがnullの場合は空のオブジェクトを返す
+      if (this.taskList === null) {
+        return {};
+      }
+
+      // disp_year と disp_month に基づいてタスクをフィルタリング
+      const filteredTasks = this.taskList.filter(task => {
+        const startDate = new Date(task.start);
+        const taskYear = startDate.getFullYear();
+        const taskMonth = startDate.getMonth() + 1; // getMonth()は0から始まるので1を足す
+
+        // disp_year と disp_month が一致するタスクだけを返す
+        return taskYear === this.disp_year && taskMonth === this.disp_month;
+      });
+
+      // フィルタリングされたタスクを返す
+      return filteredTasks;
+    }
   },
 
   methods: {
+    //学年の表示をオンオフする関数
+    changeGradeDisp(index){
+      if(this.gradeList[index].disp == true){
+        this.gradeList[index].disp = false;
+        this.updateGradeDisp();
+      }
+      else{
+        this.gradeList[index].disp = true;
+        this.updateGradeDisp();
+      }
+    },
+    //学年のdisplayを更新
+    updateGradeDisp(){
+      for(let taskNum=0; taskNum<this.taskList.length; taskNum++){
+        for(let gradeNum=0; gradeNum<this.gradeList.length; gradeNum++){
+          if(this.taskList[taskNum].extendedProps.grade[gradeNum] == true){
+            if(this.gradeList[gradeNum].disp == false){
+              this.taskList[taskNum].setProp('display', 'none');
+            }
+            else{
+              this.taskList[taskNum].setProp('display', 'block');
+            }
+          }
+        }
+      }
+    },
+    //学科の表示をオンオフする関数
+    changeCourseDisp(index){
+      if(this.courseList[index].disp == true){
+        this.courseList[index].disp = false;
+        this.updateCourseDisp();
+      }
+      else{
+        this.courseList[index].disp = true;
+        this.updateCourseDisp();
+      }
+    },
+    //学科のdisplayを更新
+    updateCourseDisp(){
+      for(let taskNum=0; taskNum<this.taskList.length; taskNum++){
+        for(let courseNum=0; courseNum<this.courseList.length; courseNum++){
+          if(this.taskList[taskNum].extendedProps.course[courseNum] == true){
+            if(this.courseList[courseNum].disp == false){
+              this.taskList[taskNum].setProp('display', 'none');
+            }
+            else{
+              this.taskList[taskNum].setProp('display', 'block');
+            }
+          }
+        }
+      }
+    },
     //時間(Object)と時間(文字列)の足し算、返り値->object
     addTimes(timeObject, timeChar){
       const [hours, minutes] = timeChar.split(':').map(Number);
@@ -802,6 +877,7 @@ export default{
     },
     //fullcalendarイベントクリック時のイベント詳細表示
     clickEventFunc: function(arg){
+      this.makeLog(arg);
       this.dispTaskDetail(arg.event);
     },
     //イベント詳細表示
@@ -811,6 +887,7 @@ export default{
     },
     //日付をクリックしてイベント追加
     dateAddTask: function(arg){
+      this.makeLog(arg);
       this.newTask.start = arg.date;
       this.newTask.end = arg.date;
       this.fullAddDialog = true;
@@ -876,7 +953,7 @@ export default{
     },
     //日付をYYYY/MM/DDのフォーマットで返す
     formatDate(data){
-      const [years, months, dates] = data.toLocaleDateString('ja-JP').split('/');
+      const [years, months, dates] = data.toLocaleDateString().split('/');
       return years + '/' + months + '/' + dates;
     },
     //時間を"hh:mmのフォーマットで返す
@@ -884,22 +961,28 @@ export default{
       const [hours, minutes, seconds] = data.toLocaleTimeString().split(':');
       return hours + ':' + minutes;
     },
-    /*
+
     //次月切り替え
     nextMonth(){
-      if(month === 12){
-        month = 1;
-        year += 1;
+      if(this.disp_month === 12){
+        this.disp_month = 1;
+        this.disp_year += 1;
+      }
+      else{
+        this.disp_month+=1;
       }
     },
     //前月切り替え
     prevMonth(){
-      if(month === 1){
-        month = 12;
-        year -= 1;
+      if(this.disp_month === 1){
+        this.disp_month = 12;
+        this.disp_year -= 1;
+      }
+      else{
+        this.disp_month-=1;
       }
     },
-    */
+    
     handleDateSelect(date) {
       console.log("選択された日付:", date);
     },
