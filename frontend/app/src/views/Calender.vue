@@ -576,7 +576,7 @@
       <br>
       <!--タスク一覧-->
       <div style="height: 600px; overflow-y: auto;">
-        <v-card v-for="task in tasksByMonth" :key="task.id" @click="dispTaskDetail(task)" min-width="600px" max-width="600px" style="text-align: center;"> 
+        <v-card v-for="task in taskFilter" :key="task.id" @click="dispTaskDetail(task)" min-width="600px" max-width="600px" style="text-align: center;"> 
           <p>{{ formatDate(task.start) }}  ({{ formatDay(task.start) }}) {{ formatTime(task.start) }} - {{ formatDate(task.end) }}  ({{ formatDay(task.end) }}) {{ formatTime(task.end) }}</p>
           <h3>{{ task.title }} </h3>
         </v-card>
@@ -742,30 +742,30 @@ export default{
       }
       return this.calApi.getEvents();
     },
-
-    tasksByMonth() {
-      // taskListがnullの場合は空のオブジェクトを返す
-      if (this.taskList === null) {
-        return {};
+    
+    //フィルタリング(年,月,学年,学科)
+    taskFilter() {
+      if (!this.taskList) {
+        return []; // データがない場合は空配列を返す
       }
 
-      // disp_year と disp_month に基づいてタスクをフィルタリング
-      const filteredTasks = this.taskList.filter(task => {
+      return this.taskList.filter(task => {
         const startDate = new Date(task.start);
         const taskYear = startDate.getFullYear();
-        const taskMonth = startDate.getMonth() + 1; // getMonth()は0から始まるので1を足す
+        const taskMonth = startDate.getMonth() + 1;
 
-        // disp_year と disp_month が一致するタスクだけを返す
-        return taskYear === this.disp_year && taskMonth === this.disp_month;
+        // 現在の表示中の年と月に一致し、かつ表示が有効なタスクのみ
+        return (
+          taskYear === this.disp_year &&
+          taskMonth === this.disp_month &&
+          task.display === 'block'
+        );
       });
-
-      // フィルタリングされたタスクを返す
-      return filteredTasks;
     }
   },
 
   methods: {
-    //学年の表示をオンオフする関数
+    //表示する学年を切り替える関数(gradeListの値を変更する、true=表示したい/false=表示したくない)
     changeGradeDisp(index){
       if(this.gradeList[index].disp == true){
         this.gradeList[index].disp = false;
@@ -776,7 +776,7 @@ export default{
         this.updateGradeDisp();
       }
     },
-    //学年のdisplayを更新
+    //学年のdisplayを更新(gradeListの値によって各タスクデータのdisplayを変更する、fullcalendarではdisplayの値によってタスクの表示を制御するため)
     updateGradeDisp(){
       for(let taskNum=0; taskNum<this.taskList.length; taskNum++){
         for(let gradeNum=0; gradeNum<this.gradeList.length; gradeNum++){
@@ -791,7 +791,7 @@ export default{
         }
       }
     },
-    //学科の表示をオンオフする関数
+    //表示する学科を切り替える関数(courseListの値を変更する、true=表示したい/false=表示したくない)
     changeCourseDisp(index){
       if(this.courseList[index].disp == true){
         this.courseList[index].disp = false;
@@ -802,7 +802,7 @@ export default{
         this.updateCourseDisp();
       }
     },
-    //学科のdisplayを更新
+    //学科のdisplayを更新(courseListの値によって各タスクデータのdisplayを変更する、fullcalendarではdisplayの値によってタスクの表示を制御するため)
     updateCourseDisp(){
       for(let taskNum=0; taskNum<this.taskList.length; taskNum++){
         for(let courseNum=0; courseNum<this.courseList.length; courseNum++){
